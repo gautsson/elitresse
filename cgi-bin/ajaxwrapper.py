@@ -9,7 +9,7 @@ from subprocess import Popen, PIPE, STDOUT
 ################################################################################
 ## IMPORTANT NOTE:
 ## Uncomment the code for the programming language that you want to use.
-## And don't forget to edit the absolute path for your script -- 
+## And don't forget to edit the absolute path for your script --
 ## it could be /usr/bin or /usr/local/bin or /opt/local/bin or anything else,
 ## not to mention the horrendous Windows paths...
 
