@@ -3,4 +3,5 @@
 *.hi
 *.o
 *.pyc
+cgi-bin/ajaxwrapper.py
 __pycache__
