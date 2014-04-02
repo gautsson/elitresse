@@ -3,4 +3,5 @@
 *.hi
 *.o
 *.pyc
+cgi-bin/
 __pycache__
