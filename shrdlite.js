@@ -12,7 +12,7 @@ var SystemPromptText = "What can I do for you today?";
 // Constants that you can play around with:
 var DialogueHistory = 100;    // max nr. utterances
 var FloorThickness = 10;     // pixels
-var WallSeparation = 4;     // pixels
+var WallSeparation = 4;     // pixels 
 var ArmSize = 0.2;         // of stack width
 var AnimationPause = 0.1; // seconds
 var PromptPause = 0.5;   // seconds
