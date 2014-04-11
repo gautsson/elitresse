@@ -12,5 +12,5 @@ if __name__ == '__main__':
     print parse_trees
     
     x = interpret.Interpreter()
-    
+    #THIS IS THE EXPERIMENTATION
     goals = x.interpret(parse_trees)
