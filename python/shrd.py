@@ -14,5 +14,3 @@ if __name__ == '__main__':
     x = interpret.Interpreter()
     
     goals = x.interpret(parse_trees)
-    
-    

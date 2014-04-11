@@ -43,32 +43,78 @@ class AmbiguityResolver:
             wIndex = wIndex + 1
                 
     
-    def getMatchingObjects(self, objectsToBeChecked):
+    def getMatchingObjects(self, objectToBeChecked):
         '''Finds matching world objects.
-            It takes a list of objects and a list of world objects,
-             then searches for matches for each object,
-            Returns a list of matches for each object, in the same order as in the list
-            sent to the function.
+            it takes an object and compares it attribute by attribute
+            to world objects. Upon finding a match, it calls getObjectCoordinates.
+            Returns a tuple of tuples 
         '''
         matchingObjects = []
-        matches = []
-        for objectBeingChecked in objectsToBeChecked:
-            del matchingObjects[:]
-            for object in self.objectsInWorld:
-                match = True
-                if (objectBeingChecked[0] and 
-                        self.objectsInWorld[object]['form'] != objectBeingChecked[0]):
-                        match = False
-                if (objectBeingChecked[1] and 
-                        self.objectsInWorld[object]['size'] != objectBeingChecked[1]):
-                        match = False
-                if (objectBeingChecked[2] and
-                        self.objectsInWorld[object]['color'] != objectBeingChecked[2]):
-                        match = False
-                if match:
-                    matchingObjects.extend(object)
-            matches.append(list(matchingObjects))
-        return matches
+        #matches = []
+        for object in self.objectsInWorld:
+            match = True
+            if (objectToBeChecked[0] and 
+                    self.objectsInWorld[object]['form'] != objectToBeChecked[0]):
+                    match = False
+            if (objectToBeChecked[1] and 
+                    self.objectsInWorld[object]['size'] != objectToBeChecked[1]):
+                    match = False
+            if (objectToBeChecked[2] and
+                    self.objectsInWorld[object]['color'] != objectToBeChecked[2]):
+                    match = False
+            if match:
+                coords = tuple(self.getObjectCoordinates(object))
+                matchingObjects.append(coords)
+        matchTuple = tuple(matchingObjects)
+        #matches.append(list(matchingObjects))
+        return matchTuple
+    
+    def handleInput(self, inputList):
+        source = True
+        for bigList in inputList[0]:
+            if source:
+                sourceList = self.parse(bigList)
+                source = False
+            else:
+                targetList = self.parse(bigList)
+    
+    def parse(self, inputList):
+        
+        dummyList = []
+        if self.isDone(inputList):
+            print inputList
+            return inputList
+        else:
+            for innerList in inputList:
+                if self.hasSubList(innerList):
+                    for item in innerList:
+                        dummyList.append(item)
+                elif isinstance(innerList,list) and len(innerList)==3:
+                    dummyList.append(self.getMatchingObjects(innerList))
+                elif isinstance(innerList, list):
+                    for i in innerList:
+                        dummyList.append(i)
+                else:
+                    dummyList.append(innerList)
+                        
+            self.parse(dummyList)
+        
+    def hasSubList(self, parentList):
+        for something in parentList:
+            if isinstance(something, list):
+                return True
+        return False
+    
+    def isDone(self, testList):
+        for item in testList:
+            if isinstance(item,list):
+                for subItem in item:
+                    if isinstance(subItem,list):
+                        return False
+                    elif len(item)==3:
+                        return False
+        return True
+            
     
 class World:
     
@@ -152,9 +198,13 @@ class Tester:
     
         
 if __name__ == '__main__':
-    mySmallWorld = World("small")
-    ambSmallSolver = AmbiguityResolver("someGoal", mySmallWorld)
-    f = ambSmallSolver.getObjectCoordinates("f")
+    
+    myMediumWorld = World("medium")
+    ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
+    ambMediumSolver.handleInput([[[['any', ['box', '', '']], [['beside', ['any', ['pyramid', '', '']]]]], ['ontop', ['any', ['table', '', '']]]]])
+    
+    
+    '''f = ambSmallSolver.getObjectCoordinates("f")
     m = ambSmallSolver.getObjectCoordinates("m")
     print "----Should be True, False all the time-----"
     print ambSmallSolver.onTop(f, m)
@@ -172,6 +222,7 @@ if __name__ == '__main__':
     print ambSmallSolver.beside(e, l)
     print ambSmallSolver.beside(l, e)
     print ambSmallSolver.beside(m, l)
+    '''
     """
     mySmallWorld = World("small")
     myMediumWorld = World("medium")
