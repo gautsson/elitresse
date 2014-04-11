@@ -14,7 +14,6 @@ class Interpreter:
     def __init__(self):
         None        
         
-        
     def interpret(self, parse_trees):
         """
         Takes a set of parse_trees and returns a set of goals in
@@ -32,22 +31,21 @@ class Interpreter:
             if command == "take":
                 entity = eachParseTree[1]
                 
-                goals.append(self.interpretEntity(entity))
+                goals.append[self.interpretEntity(entity)]
             
             elif command == "put":
                 location = eachParseTree[1]
                 
-                goals.append(self.interpretLocation(location))
+                goals.append[self.interpretLocation(location)]
                 
             elif command == "move":
                 entity   = eachParseTree[1]
                 location = eachParseTree[2]
                 
-                goals.append((self.interpretEntity(entity), self.interpretLocation(location)))
-                
+                goals.append([self.interpretEntity(entity), self.interpretLocation(location)])   
             
         print goals
-        
+        return goals
         
     def interpretEntity(self, entity):
         """
@@ -63,11 +61,11 @@ class Interpreter:
         
         if (typeOfEntity == "basic_entity"):
             typeOfEntity, quantifier, object = entity
-            return (quantifier, object)
+            return [quantifier, self.modifyObject(object)]
             
         elif (typeOfEntity == "relative_entity"):
             typeOfEntity, quantifier, object, location = entity
-            return ((quantifier, object), (self.interpretLocation(location)))
+            return [[quantifier, self.modifyObject(object)], [self.interpretLocation(location)]]
         
         else:
             return entity
@@ -82,4 +80,22 @@ class Interpreter:
         
         relative, relation, entity = location
         
-        return (relation, self.interpretEntity(entity))  
+        return [relation, self.interpretEntity(entity)]
+    
+    def modifyObject(self, object):
+        """
+        Modifies the object
+        
+        Arguments: An object
+        Returns:   A modified object
+        """  
+        
+        object = list(object)
+        
+        del object[0]
+        
+        for i in range (len(object)):
+            if (object[i] == "-"):
+                object[i] = ""
+                
+        return object
