@@ -19,6 +19,14 @@ test = {
 holding = False
 
 
+# Gets the number of stacks in the world
+def getWorldLength(world):
+	return len(world)
+
+# Returns a list of the stacks in the world
+def getAllStacks(world):
+	return range(len(world))
+
 # Gets all the empty stacks in the world
 def getEmptyStacks(world):
 	x = []
@@ -85,15 +93,22 @@ def getStacksWithSmallObjectsOnTop(world):
 			topSmallObjectStacks.append(stack)
 	return topSmallObjectStacks
 
+def test():
+	return["pick 1", "drop 2", "pick 3", "drop 2"]
+
+# Gets stacks which do NOT have either a ball on top or 
 
 
 if __name__ == '__main__':
-	# a = (ontop, e, g)
 	# print(objects)
-
-	#print getEmptyStacks(world)
 	#print getTopObject(world)
 	#print getOrderedListOfObjects(world)
+	#print getWorldLength(world)
+	#print getEmptyStacks(world)
+	#print getStacksWithBallsOnTop(world)
+	#print getStacksWithSmallObjectsOnTop(world)
+	print getAllStacks(world)
+	print test()
 
-	print getStacksWithBallsOnTop(world)
-	print getStacksWithSmallObjectsOnTop(world)
+	#a = ("ontop", "e", "g")
+	#print str(a)
