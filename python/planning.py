@@ -1,4 +1,25 @@
 from Queue import PriorityQueue
+
+world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
+world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+goal = ["onTop,c,a"]
+objects = {
+    "a": { "form":"brick",   "size":"large",  "color":"green" },
+    "b": { "form":"brick",   "size":"small",  "color":"white" },
+    "c": { "form":"plank",   "size":"large",  "color":"red"   },
+    "d": { "form":"plank",   "size":"small",  "color":"green" },
+    "e": { "form":"ball",    "size":"large",  "color":"white" },
+    "f": { "form":"ball",    "size":"small",  "color":"black" },
+    "g": { "form":"table",   "size":"large",  "color":"blue"  },
+    "h": { "form":"table",   "size":"small",  "color":"red"   },
+    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    "k": { "form":"box",     "size":"large",  "color":"yellow"},
+    "l": { "form":"box",     "size":"large",  "color":"red"   },
+    "m": { "form":"box",     "size":"small",  "color":"blue"} }
+
+
 #
 # Lots of helper functions which I wrote...
 #
@@ -156,52 +177,67 @@ def checkStuff(object):
 		else:
 			stack = stack+1
 
-def searchForPickUp(world, goal):
-	closedSet = []
-	openSet = Queue.PriorityQueue()
-	start = (heuristic_cost_estimate(world, goal), world)
-	openSet.put(start)
-	cameFrom = []
+# def searchForPickUp(world, goal):
+# 	closedSet = []
+# 	openSet = Queue.PriorityQueue()
+# 	start = (heuristic_cost_estimate(world, goal), world)
+# 	openSet.put(start)
+# 	cameFrom = []
 
-	g_score = [0]
-	f_score = g_score + heuristic_cost_estimate(world, goal)
+# 	g_score = [0]
+# 	f_score = g_score + heuristic_cost_estimate(world, goal)
 
-	while openSet is not []:
-		current = openSet.get()
+# 	while openSet is not []:
+# 		current = openSet.get()
 
-		if (isGoal(current, goal)):
-			return reconstruct_path(cameFrom, goal)
+# 		if (isGoal(current, goal)):
+# 			return reconstruct_path(cameFrom, goal)
 
-		closedSet.append(current)
+# 		closedSet.append(current)
 
-		for eachNeighbour in performMove(current):		
-			if eachNeighbour in closedSet: # Fix later
-				continue
+# 		for eachNeighbour in performMove(current):		
+# 			if eachNeighbour in closedSet: # Fix later
+# 				continue
 			
-			temporaryCost = g_score[current] + moveDistance(current, neighbor)
+# 			temporaryCost = g_score[current] + moveDistance(current, neighbor)
 
-			if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
-				cameFrom[neighbor] = current
-				g_score[neighbor]  = temporaryCost
-				f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+# 			if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
+# 				cameFrom[neighbor] = current
+# 				g_score[neighbor]  = temporaryCost
+# 				f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
 
-				if (neighbor not in openSet):
-					openSet.put(neighbor)
+# 				if (neighbor not in openSet):
+# 					openSet.put(neighbor)
 
-def heuristic_cost_estimate(world, goal):
-	pass
+def heuristic_cost_estimate(goal):
+	goalList = goal[0].split(",")
+	relation, objA, objB = goalList
+	
+	locA = getLocation(objA)
+	locB = getLocation(objB)
+
+	return abs((locA[1] - getStackHeight(locA[0])) + (locB[1] - getStackHeight(locB[0])))
 
 def reconstructPath(cameFrom, goal):
 	pass
 
 def moveDistance(fromNode, toNode):
-	pass
+	start = -1
+	end = -1
+	
+	for column in range(getWorldLength(world)):
+		if (len(fromNode[column]) != len(toNode[column]) and start == -1):
+			start = column
+		elif (len(fromNode[column]) != len(toNode[column]) and end == -1):
+			end = column
+			
+	return abs(end - start)	
 
 def pick(column):
-	pass
+	return world.pop(column)
 
 def drop(column):
-	pass
+	world.append(object)
 
 #
 def getLocation(object):	
@@ -216,7 +252,7 @@ def getStackHeight(stack):
 def getObject(column, row):
 	return world[column][row]
 
-
+# Checks whether the goal has been satisfied or not
 def isGoal(world, goal):
 	goalList = goal[0].split(",")
 
@@ -258,29 +294,20 @@ def isGoal(world, goal):
 		else:
 			return False
 
+def getLocation(object):	
+	for column in range(getWorldLength(world)):
+		for row in range(getStackHeight(column)):
+			if object == getObject(column, row):
+				return (column, row)
+		
+def getObject(column, row):
+	return world[column][row]
 
+def getStackHeight(stack):
+	return len(world[stack])
 
 if __name__ == '__main__':
-
-	world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-	objects = {
-        "a": { "form":"brick",   "size":"large",  "color":"green" },
-        "b": { "form":"brick",   "size":"small",  "color":"white" },
-        "c": { "form":"plank",   "size":"large",  "color":"red"   },
-        "d": { "form":"plank",   "size":"small",  "color":"green" },
-        "e": { "form":"ball",    "size":"large",  "color":"white" },
-        "f": { "form":"ball",    "size":"small",  "color":"black" },
-        "g": { "form":"table",   "size":"large",  "color":"blue"  },
-        "h": { "form":"table",   "size":"small",  "color":"red"   },
-        "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-        "j": { "form":"pyramid", "size":"small",  "color":"red"   },
-        "k": { "form":"box",     "size":"large",  "color":"yellow"},
-        "l": { "form":"box",     "size":"large",  "color":"red"   },
-        "m": { "form":"box",     "size":"small",  "color":"blue"} }
-
-	#goal = ["onTop,l,a"]
-	goal = ["rightOf,d,k"]
-
-	# print performMove(goal, world)
-	print isGoal(world, goal)
-
+	print performMove(["onTop,c,a"], world)
+	#print getLocation("a")
+	print heuristic_cost_estimate(goal)
+	print moveDistance(world, world2)
