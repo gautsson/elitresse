@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import sys
 import json
+import planning
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
 
@@ -58,13 +59,18 @@ def parse(utterance):
 
 
 def interpret(tree, world, holding, objects):
-    return [True]
+    #return [True]
+    return ["onTop,c,a"]
 
 
 def solve(goal, world, holding, objects):
-    col = list(map(bool, world)).index(True)
-    return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
-
+    #col = list(map(bool, world)).index(True)
+    #return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
+    #return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
+    # return ["pick 1", "drop 2"]
+    # goal = ["onTop,c,a"]
+    #return planning.performMove(goal, world)
+    return planning.test()
 
 def main(utterance, world, holding, objects, **_):
     result = {}
