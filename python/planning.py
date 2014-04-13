@@ -294,18 +294,6 @@ def isGoal(world, goal):
 		else:
 			return False
 
-def getLocation(object):	
-	for column in range(getWorldLength(world)):
-		for row in range(getStackHeight(column)):
-			if object == getObject(column, row):
-				return (column, row)
-		
-def getObject(column, row):
-	return world[column][row]
-
-def getStackHeight(stack):
-	return len(world[stack])
-
 if __name__ == '__main__':
 	print performMove(["onTop,c,a"], world)
 	#print getLocation("a")
