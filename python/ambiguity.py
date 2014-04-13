@@ -201,8 +201,11 @@ if __name__ == '__main__':
     
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
-    ambMediumSolver.handleInput([[[['any', ['box', '', '']], [['beside', ['any', ['pyramid', '', '']]]]], ['ontop', ['any', ['table', '', '']]]]])
-    
+    ambMediumSolver.handleInput([[[['the', ['ball', '', '']], [['ontop', ['the', ['table', '', '']]]]],
+    ['inside', [['the', ['box', '', '']], [['rightof', ['the', ['pyramid', '', '']]]]]]]])
+
+
+
     
     '''f = ambSmallSolver.getObjectCoordinates("f")
     m = ambSmallSolver.getObjectCoordinates("m")
