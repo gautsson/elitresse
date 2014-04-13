@@ -1,3 +1,4 @@
+import Queue.PriorityQueue
 #
 # Lots of helper functions which I wrote...
 #
@@ -136,6 +137,79 @@ def isTargetObjectOnTop(targetObject, world):
 		return False
 
 
+###
+#
+#
+#
+# TEST FUNCTIONS SEARCH BELOW HERE:
+#
+#
+#
+##
+
+
+def checkStuff(object):
+	stack = 0
+	for item in world:
+		if object in item:
+			return stack
+		else:
+			stack = stack+1
+
+def searchForPickUp(world, goal):
+	closedSet = []
+	openSet = Queue.PriorityQueue()
+	start = (heuristic_cost_estimate(world, goal), world)
+	openSet.put(start)
+	cameFrom = []
+
+	g_score = [0]
+	f_score = g_score + heuristic_cost_estimate(world, goal)
+
+	while openSet is not []:
+		current = openSet.get()
+
+		if (isGoal(current, goal)):
+			return reconstruct_path(cameFrom, goal)
+
+		closedSet.append(current)
+
+		for eachNeighbour in performMove(current):		
+			if eachNeighbour in closedSet: # Fix later
+				continue
+			
+			temporaryCost = g_score[current] + moveDistance(current, neighbor)
+
+			if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
+				cameFrom[neighbor] = current
+				g_score[neighbor]  = temporaryCost
+				f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+
+				if (neighbor not in openSet):
+					openSet.put(neighbor)
+
+def isGoal(world, goal):
+	pass
+
+def heuristic_cost_estimate(world, goal):
+	pass
+
+def reconstructPath(cameFrom, goal):
+	pass
+
+def moveDistance(from, to):
+	pass
+
+
+def pick(column):
+	pass
+
+def drop(column):
+	pass
+
+
+
+
 
 if __name__ == '__main__':
 
@@ -157,3 +231,4 @@ if __name__ == '__main__':
 
 
 	print performMove(["onTop,c,a"], world)
+	
