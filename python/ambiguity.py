@@ -137,9 +137,10 @@ class AmbiguityResolver:
                     return [wIndex,sIndex]
                 sIndex = sIndex + 1
             wIndex = wIndex + 1
-       ''' Searches for all places that are available on the floor
-       '''
+       
     def findPlacesOnTheFloor(self):
+        ''' Searches for all places that are available on the floor
+        '''
         wIndex = 0
         freeFloorPlaces = []
         for worldIndex in self.worldPopulation:
