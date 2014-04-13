@@ -1,5 +1,6 @@
 from heapq import *
 
+# Global variables which are temporarily here for testing
 world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
 world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
@@ -24,7 +25,7 @@ objects = {
 
 
 #
-# Lots of helper functions which I wrote...
+# Lots of helper functions here below:
 #
 
 # Gets the number of stacks in the world
@@ -103,15 +104,15 @@ def getStacksWithSmallObjectsOnTop(world):
 
 
 #
-# Crucial functions which are used!
+# More useful functions
 #
 
-
+# Test function used to pass commands to the shrdlite.py file and from there to the GUI
 def test():
 	return ["pick 1", "drop 2"]
 
 
-# 
+# Gets the stack of an object
 def getObjectStack(object):
 	stack = 0
 	for item in world:
