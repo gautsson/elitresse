@@ -7,11 +7,50 @@ class AmbiguityResolver:
         self.objectsInWorld = world.worldObjects
         self.worldPopulation = world.population
         
-    def resolve(self, operation):
-        #dostuff
-        #firstObject = getObjectIndex(something)
-        #secondObject = getObjectIndex(somethingElse)
-        pass
+    def filterElements(self, objectList, relation, otherObjectList):
+        selectedList = []
+        functions = {
+                "above": self.above,
+                "onTop": self.onTop,
+                "inside": self.inside,
+                "rightOf": self.rightOf,
+                "leftOf": self.leftOf,
+                "under": self.under,
+                "beside": self.beside }
+        ##TODO SOLVE THE FLOOR SITUATION BEFORE IT GETS OUT OF HAND
+        for item in objectList:
+            for otherItem in otherObjectList:
+                if functions[relation](item,otherItem):
+                    selectedList.append(item)
+        return selectedList
+    
+    def resolve(self, parsedList):
+        
+        quantifiers = {
+                       "any": "a",
+                       "the": "t",
+                       "all": "al"
+                       }
+        relObj = parsedList.pop()
+        parsedList[::-1]
+        while len(parsedList) > 2:
+            if parsedList[len(parsedList)-1] in quantifiers:
+                #do something
+                #addsomehow
+                quantifier = parsedList.pop()
+                print "wuantifiers"
+            elif isinstance(parsedList[len(parsedList)-1],tuple):    
+                mainObj = parsedList.pop()     
+                #somethingelse
+                print "tuple"
+            elif parsedList[len(parsedList)-1] == 'floor':
+                mainObj = parsedList.pop()
+                print "thefloor"
+                #super special case
+            else:
+                relation = parsedList.pop()
+                print "relation"
+        
     def onTop(self, topObject, botObject):
         return topObject[0] == botObject[0] and topObject[1]-1 == botObject[1]
     
@@ -70,6 +109,8 @@ class AmbiguityResolver:
         return matchTuple
     
     def handleInput(self, inputList):
+        sourceList = []
+        targetList = []
         source = True
         for bigList in inputList[0]:
             if source:
@@ -77,12 +118,16 @@ class AmbiguityResolver:
                 source = False
             else:
                 targetList = self.parse(bigList)
-    
+        print sourceList
+        self.resolve(sourceList)
+        print targetList
+        self.resolve(targetList)
+        
     def parse(self, inputList):
         
         dummyList = []
         if self.isDone(inputList):
-            print inputList
+            #print inputList
             return inputList
         else:
             for innerList in inputList:
@@ -97,7 +142,7 @@ class AmbiguityResolver:
                 else:
                     dummyList.append(innerList)
                         
-            self.parse(dummyList)
+            return self.parse(dummyList)
         
     def hasSubList(self, parentList):
         for something in parentList:
@@ -201,11 +246,9 @@ if __name__ == '__main__':
     
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
-    ambMediumSolver.handleInput([[[['the', ['ball', '', '']], [['ontop', ['the', ['table', '', '']]]]],
-    ['inside', [['the', ['box', '', '']], [['rightof', ['the', ['pyramid', '', '']]]]]]]])
-
-
-
+    #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
+    ambMediumSolver.handleInput([[[['the', ['ball', '', 'white']], [['beside', ['any', ['pyramid', '', '']]]]], ['ontop', 'floor']]])
+    
     
     '''f = ambSmallSolver.getObjectCoordinates("f")
     m = ambSmallSolver.getObjectCoordinates("m")
@@ -226,29 +269,4 @@ if __name__ == '__main__':
     print ambSmallSolver.beside(l, e)
     print ambSmallSolver.beside(m, l)
     '''
-    """
-    mySmallWorld = World("small")
-    myMediumWorld = World("medium")
-    ambSmallSolver = AmbiguityResolver("someGoal", mySmallWorld)
-    ambMediumSolver = AmbiguityResolver("someOtherGoal", myMediumWorld)
-    smallListOfObjects = [["ball","",""],["","","black"],["plank", "small", "green"],
-                        ["table", "large", "blue"]]
-    mediumListOfObjects = [["table", "large", "red"],["box","",""],
-                           ["plank", "small", "green"],["","","white"]]
-    smallMatches = ambSmallSolver.getMatchingObjects(smallListOfObjects)
-    mediumMatches = ambMediumSolver.getMatchingObjects(mediumListOfObjects)
-    
-    
-    print "------------------------------"
-    print "Testing small-sized world"
-    print "It should print: [[e,f],[f],[],[g]]"
-    print "Matches found: ", smallMatches
-    
-    
-    print "------------------------------"
-    print "Testing medium-sized world"
-    print "It should print: [[],[k,lm,l],[d],[b,e]]"
-    print "Matches found: ", mediumMatches
-    """
-        
         
