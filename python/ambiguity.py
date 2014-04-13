@@ -11,18 +11,21 @@ class AmbiguityResolver:
         selectedList = []
         functions = {
                 "above": self.above,
-                "onTop": self.onTop,
+                "ontop": self.onTop,
                 "inside": self.inside,
-                "rightOf": self.rightOf,
-                "leftOf": self.leftOf,
+                "rightof": self.rightOf,
+                "leftof": self.leftOf,
                 "under": self.under,
                 "beside": self.beside }
-        ##TODO SOLVE THE FLOOR SITUATION BEFORE IT GETS OUT OF HAND
         for item in objectList:
-            for otherItem in otherObjectList:
-                if functions[relation](item,otherItem):
+            if otherObjectList == "floor":
+                if functions[relation](item, otherObjectList):
                     selectedList.append(item)
-        return selectedList
+            else:
+                for otherItem in otherObjectList:
+                    if functions[relation](item,otherItem):
+                        selectedList.append(item)
+        return list(set(selectedList))
     
     def resolve(self, parsedList):
         
@@ -31,31 +34,29 @@ class AmbiguityResolver:
                        "the": "t",
                        "all": "al"
                        }
-        relObj = parsedList.pop()
+            ## Reverse the list
         parsedList[::-1]
-        while len(parsedList) > 2:
+            ## Save the first object in the reversed list, which is the last object of reference for the main object
+        relObj = parsedList.pop()
+        print relObj
+        print len(parsedList)
+        while len(parsedList) > 1:
             if parsedList[len(parsedList)-1] in quantifiers:
-                #do something
-                #addsomehow
+                #manage the ambiguity later using the quantifier
                 quantifier = parsedList.pop()
-                print "wuantifiers"
-            elif isinstance(parsedList[len(parsedList)-1],tuple):    
-                mainObj = parsedList.pop()     
-                #somethingelse
-                print "tuple"
-            elif parsedList[len(parsedList)-1] == 'floor':
-                mainObj = parsedList.pop()
-                print "thefloor"
-                #super special case
-            else:
-                relation = parsedList.pop()
-                print "relation"
+                print "quantifiers"
+            relation = parsedList.pop()
+            print "relation"
+            mainObj = parsedList.pop()
+            relObj = self.filterElements(mainObj, relation, relObj)
+        return relObj
         
-    def onTop(self, topObject, botObject):
-        return topObject[0] == botObject[0] and topObject[1]-1 == botObject[1]
-    
+        
+    def onTop(self, topObject, botObject):   
+        return (botObject == "floor" and topObject[1] == 0) or (topObject[0] == botObject[0] and topObject[1]-1 == botObject[1])
+            
     def inside(self, object, container):
-        return onTop(object, container) #TODO IF WE NEED TO CHECK MORE
+        return onTop(object, container)
     
     def rightOf(self, right, left):
         return right[0] > left[0]
@@ -70,6 +71,30 @@ class AmbiguityResolver:
         return botObject < topObject
     def beside(self, object, nextObject):
         return math.fabs(object[0]-nextObject[0]) == 1
+
+    def convertToPDDL(self, sourceList, rel, targetList):
+            pddl = []
+            relation = rel
+           
+            if len(sourceList) > 1 and len(targetList) > 1:
+                pddl.append("or")
+                for item in sourceList:
+                    for otherItem in targetList:
+                        pddl.append((relation,item,otherItem))
+                       
+            elif len(sourceList) > 1:
+                pddl.append("or")
+                for item in sourceList:    
+                    pddl.append((relation,item,targetList[0]))
+            elif len(targetList) > 1:
+                pddl.append("or")
+                for item in targetList:
+                    pddl.append((relation,sourceList[0],item))
+            else:
+                pddl.append((relation, sourceList[0], targetList[0]))
+            return pddl
+
+
     
     def getObjectCoordinates(self, object):
         wIndex = 0
@@ -81,7 +106,14 @@ class AmbiguityResolver:
                 sIndex = sIndex + 1
             wIndex = wIndex + 1
                 
-    
+    def findPlacesOnTheFloor(self):
+        wIndex = 0
+        freeFloorPlaces = []
+        for worldIndex in self.worldPopulation:
+            if not worldIndex:
+                freeFloorPlaces.append((wIndex,0))
+            wIndex = wIndex + 1
+        return freeFloorPlaces    
     def getMatchingObjects(self, objectToBeChecked):
         '''Finds matching world objects.
             it takes an object and compares it attribute by attribute
@@ -118,10 +150,23 @@ class AmbiguityResolver:
                 source = False
             else:
                 targetList = self.parse(bigList)
+        action = targetList.pop(0)
+        print "Source"
         print sourceList
-        self.resolve(sourceList)
+        sourceResult = self.resolve(sourceList)
+        print "source result"
+        print sourceResult
         print targetList
-        self.resolve(targetList)
+        print "target result"
+        targResult = self.resolve(targetList)
+        print targResult
+          ## If the target is the floor, find all the places available on the floor
+        if targResult == "floor":
+            targResult = self.findPlacesOnTheFloor()
+        pddl = self.convertToPDDL(sourceResult, action, targResult)
+        print "PDDL = "
+        print pddl
+        
         
     def parse(self, inputList):
         
@@ -247,9 +292,9 @@ if __name__ == '__main__':
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
-    ambMediumSolver.handleInput([[[['the', ['ball', '', 'white']], [['beside', ['any', ['pyramid', '', '']]]]], ['ontop', 'floor']]])
-    
-    
+    ambMediumSolver.handleInput([[[['the', ['plank', '', '']], [['ontop', [['the', ['table', '', '']], [['rightof', ['the', ['box', '', 'red']]]]]]]], ['ontop', [['the', ['ball', '', 'white']], [['ontop', 'floor']]]]]])
+    #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['ontop', 'floor']]])
+
     '''f = ambSmallSolver.getObjectCoordinates("f")
     m = ambSmallSolver.getObjectCoordinates("m")
     print "----Should be True, False all the time-----"
@@ -269,4 +314,3 @@ if __name__ == '__main__':
     print ambSmallSolver.beside(l, e)
     print ambSmallSolver.beside(m, l)
     '''
-        
