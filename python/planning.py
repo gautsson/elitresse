@@ -1,4 +1,25 @@
 from Queue import PriorityQueue
+
+world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
+world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+goal = ["onTop,c,a"]
+objects = {
+    "a": { "form":"brick",   "size":"large",  "color":"green" },
+    "b": { "form":"brick",   "size":"small",  "color":"white" },
+    "c": { "form":"plank",   "size":"large",  "color":"red"   },
+    "d": { "form":"plank",   "size":"small",  "color":"green" },
+    "e": { "form":"ball",    "size":"large",  "color":"white" },
+    "f": { "form":"ball",    "size":"small",  "color":"black" },
+    "g": { "form":"table",   "size":"large",  "color":"blue"  },
+    "h": { "form":"table",   "size":"small",  "color":"red"   },
+    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    "k": { "form":"box",     "size":"large",  "color":"yellow"},
+    "l": { "form":"box",     "size":"large",  "color":"red"   },
+    "m": { "form":"box",     "size":"small",  "color":"blue"} }
+
+
 #
 # Lots of helper functions which I wrote...
 #
@@ -192,43 +213,54 @@ def isGoal(world, goal):
 	goal = ["onTop,c,a"]
 	pass
 
-def heuristic_cost_estimate(world, goal):
-	pass
+def heuristic_cost_estimate(goal):
+	goalList = goal[0].split(",")
+	relation, objA, objB = goalList
+	
+	locA = getLocation(objA)
+	locB = getLocation(objB)
+
+	return abs((locA[1] - getStackHeight(locA[0])) + (locB[1] - getStackHeight(locB[0])))
 
 def reconstructPath(cameFrom, goal):
 	pass
 
 def moveDistance(fromNode, toNode):
-	pass
+	start = -1
+	end = -1
+	
+	for column in range(getWorldLength(world)):
+		if (len(fromNode[column]) != len(toNode[column]) and start == -1):
+			start = column
+		elif (len(fromNode[column]) != len(toNode[column]) and end == -1):
+			end = column
+			
+	return abs(end - start)	
 
 def pick(column):
-	pass
+	return world.pop(column)
 
 def drop(column):
-	pass
+	world.append(object)
 
 
+def getLocation(object):	
+	for column in range(getWorldLength(world)):
+		for row in range(getStackHeight(column)):
+			if object == getObject(column, row):
+				return (column, row)
+		
+def getObject(column, row):
+	return world[column][row]
 
-
+def getStackHeight(stack):
+	return len(world[stack])
 
 if __name__ == '__main__':
 
-	world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-	objects = {
-        "a": { "form":"brick",   "size":"large",  "color":"green" },
-        "b": { "form":"brick",   "size":"small",  "color":"white" },
-        "c": { "form":"plank",   "size":"large",  "color":"red"   },
-        "d": { "form":"plank",   "size":"small",  "color":"green" },
-        "e": { "form":"ball",    "size":"large",  "color":"white" },
-        "f": { "form":"ball",    "size":"small",  "color":"black" },
-        "g": { "form":"table",   "size":"large",  "color":"blue"  },
-        "h": { "form":"table",   "size":"small",  "color":"red"   },
-        "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-        "j": { "form":"pyramid", "size":"small",  "color":"red"   },
-        "k": { "form":"box",     "size":"large",  "color":"yellow"},
-        "l": { "form":"box",     "size":"large",  "color":"red"   },
-        "m": { "form":"box",     "size":"small",  "color":"blue"} }
-
 
 	print performMove(["onTop,c,a"], world)
+	#print getLocation("a")
+	print heuristic_cost_estimate(goal)
+	print moveDistance(world, world2)
 	
