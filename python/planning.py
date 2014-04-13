@@ -1,4 +1,4 @@
-import Queue.PriorityQueue
+from Queue import PriorityQueue
 #
 # Lots of helper functions which I wrote...
 #
@@ -156,39 +156,40 @@ def checkStuff(object):
 		else:
 			stack = stack+1
 
-def searchForPickUp(world, goal):
-	closedSet = []
-	openSet = Queue.PriorityQueue()
-	start = (heuristic_cost_estimate(world, goal), world)
-	openSet.put(start)
-	cameFrom = []
+# def searchForPickUp(world, goal):
+# 	closedSet = []
+# 	openSet = Queue.PriorityQueue()
+# 	start = (heuristic_cost_estimate(world, goal), world)
+# 	openSet.put(start)
+# 	cameFrom = []
 
-	g_score = [0]
-	f_score = g_score + heuristic_cost_estimate(world, goal)
+# 	g_score = [0]
+# 	f_score = g_score + heuristic_cost_estimate(world, goal)
 
-	while openSet is not []:
-		current = openSet.get()
+# 	while openSet is not []:
+# 		current = openSet.get()
 
-		if (isGoal(current, goal)):
-			return reconstruct_path(cameFrom, goal)
+# 		if (isGoal(current, goal)):
+# 			return reconstruct_path(cameFrom, goal)
 
-		closedSet.append(current)
+# 		closedSet.append(current)
 
-		for eachNeighbour in performMove(current):		
-			if eachNeighbour in closedSet: # Fix later
-				continue
+# 		for eachNeighbour in performMove(current):		
+# 			if eachNeighbour in closedSet: # Fix later
+# 				continue
 			
-			temporaryCost = g_score[current] + moveDistance(current, neighbor)
+# 			temporaryCost = g_score[current] + moveDistance(current, neighbor)
 
-			if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
-				cameFrom[neighbor] = current
-				g_score[neighbor]  = temporaryCost
-				f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+# 			if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
+# 				cameFrom[neighbor] = current
+# 				g_score[neighbor]  = temporaryCost
+# 				f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
 
-				if (neighbor not in openSet):
-					openSet.put(neighbor)
+# 				if (neighbor not in openSet):
+# 					openSet.put(neighbor)
 
 def isGoal(world, goal):
+	goal = ["onTop,c,a"]
 	pass
 
 def heuristic_cost_estimate(world, goal):
@@ -197,9 +198,8 @@ def heuristic_cost_estimate(world, goal):
 def reconstructPath(cameFrom, goal):
 	pass
 
-def moveDistance(from, to):
+def moveDistance(fromNode, toNode):
 	pass
-
 
 def pick(column):
 	pass
