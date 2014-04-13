@@ -3,6 +3,10 @@ import math
 class AmbiguityResolver:
     
     def __init__(self, goals, world):
+        ''' Takes a goal and a world object.
+            --- This is currently not being used this way, and is yet to be connected
+                to the methods of this class ---
+        '''
         self.world = world
         self.objectsInWorld = world.worldObjects
         self.worldPopulation = world.population
@@ -52,29 +56,48 @@ class AmbiguityResolver:
         return relObj
         
         
-    def onTop(self, topObject, botObject):   
+    def onTop(self, topObject, botObject): 
+        ''' Returns true if a given object is on top of another given object.
+        '''  
         return (botObject == "floor" and topObject[1] == 0) or (topObject[0] == botObject[0] and topObject[1]-1 == botObject[1])
             
     def inside(self, object, container):
+        ''' Returns true if a given object is inside of another given object.
+        '''
         return onTop(object, container)
     
     def rightOf(self, right, left):
+        '''Returns true if a given object is right of another given object.
+        '''
         return right[0] > left[0]
     
     def leftOf(self, left, right):
+        '''Returns true if a given object is left of another given object.
+        '''
         return left[0] < right[0]
     
     def above(self, topObject, botObject):
+        ''' Returns true if a given object is above another given object.
+        '''
         return topObject[1] > botObject[1]
     
     def under(self, botObject, topObject):
+        ''' Returns true if a given object is under another given object. 
+        '''
         return botObject < topObject
+    
     def beside(self, object, nextObject):
+        ''' Returns true if a given object is beside another given object.
+        '''
         return math.fabs(object[0]-nextObject[0]) == 1
 
-    def convertToPDDL(self, sourceList, rel, targetList):
+    def convertToPDDL(self, sourceList, relation, targetList):
+            ''' Takes a list of source objects, a relation and a list of target objects
+            and converts it into PDDL in order to allow processing by the planner.
+            Creates every possible combination of goals of the two lists.
+            Returns a list of PDDL goals.
+            '''
             pddl = []
-            relation = rel
            
             if len(sourceList) > 1 and len(targetList) > 1:
                 pddl.append("or")
@@ -97,6 +120,8 @@ class AmbiguityResolver:
 
     
     def getObjectCoordinates(self, object):
+        ''' Searches the world for a given object and returns its coordinates.
+        '''
         wIndex = 0
         for worldIndex in self.worldPopulation:
             sIndex = 0
@@ -116,9 +141,9 @@ class AmbiguityResolver:
         return freeFloorPlaces    
     def getMatchingObjects(self, objectToBeChecked):
         '''Finds matching world objects.
-            it takes an object and compares it attribute by attribute
+            Takes an object and compares it attribute by attribute
             to world objects. Upon finding a match, it calls getObjectCoordinates.
-            Returns a tuple of tuples 
+            Returns a tuple of tuples with coordinates for the matches found.
         '''
         matchingObjects = []
         #matches = []
@@ -141,6 +166,9 @@ class AmbiguityResolver:
         return matchTuple
     
     def handleInput(self, inputList):
+        ''' Separates the list received as parameter into a source list and a target list,
+            which are parsed separately by calling the parse function.
+        '''
         sourceList = []
         targetList = []
         source = True
@@ -169,7 +197,11 @@ class AmbiguityResolver:
         
         
     def parse(self, inputList):
-        
+        ''' Takes a list from the interpreter and parses it to a format
+            which will allow processing through disambiguation methods.
+            Works recursively by eliminating sublists from the parameter inputList.
+            Returns a list without sublists.
+        '''
         dummyList = []
         if self.isDone(inputList):
             #print inputList
@@ -190,12 +222,19 @@ class AmbiguityResolver:
             return self.parse(dummyList)
         
     def hasSubList(self, parentList):
+        '''Simple method for checking whether a list contains any sublists.
+        '''
         for something in parentList:
             if isinstance(something, list):
                 return True
         return False
     
     def isDone(self, testList):
+        ''' Simple method for checking whether or not there are
+            unparsed elements in a list.
+            Returns true if no unparsed elements are detected.
+        
+        '''
         for item in testList:
             if isinstance(item,list):
                 for subItem in item:
@@ -209,7 +248,14 @@ class AmbiguityResolver:
 class World:
     
     def __init__(self, size):
-        
+        ''' Represents the world.
+            size can be either small, medium, complex or impossible.
+            Creates a world population and keeps a dictionary of objects in the world.
+            This class is likely to be moved later but has been created here
+            to facilitate testing.
+            
+        '''
+
         if size == "small":
             self.population = [["e"],["g","l"],[],["k","m","f"],[]]
             self.worldObjects = {
@@ -279,16 +325,10 @@ class World:
         "sbox1":   { "form":"box",     "size":"small",  "color":"red"   },
         "sbox2":   { "form":"box",     "size":"small",  "color":"blue"} }
             
-class Tester:
-    
-    def __init__(self, testAtt):
-        pass
-        #self.oneAtt = testAtt
-        #print "made a class and its attribute is ", self.oneAtt
-    
-        
 if __name__ == '__main__':
-    
+    '''
+        This method is purely for testing purposes of the above functions. 
+    '''
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
