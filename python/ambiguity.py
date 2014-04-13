@@ -12,6 +12,10 @@ class AmbiguityResolver:
         self.worldPopulation = world.population
         
     def filterElements(self, objectList, relation, otherObjectList):
+        ''' Takes 2 lists of possible marching objects for 2 object description and 
+            the spatial relation between them and returns just those coordinates that
+            match the spatial relation
+        '''
         selectedList = []
         functions = {
                 "above": self.above,
@@ -30,9 +34,12 @@ class AmbiguityResolver:
                     if functions[relation](item,otherItem):
                         selectedList.append(item)
         return list(set(selectedList))
-    
-    def resolve(self, parsedList):
         
+    def resolve(self, parsedList):
+        ''' This is used for both the source list of elements and target list of elements
+            and calls the filterElements() function, to get rid of the elements that don't
+            match with the spatial description
+        '''
         quantifiers = {
                        "any": "a",
                        "the": "t",
@@ -130,7 +137,8 @@ class AmbiguityResolver:
                     return [wIndex,sIndex]
                 sIndex = sIndex + 1
             wIndex = wIndex + 1
-                
+       ''' Searches for all places that are available on the floor
+       '''
     def findPlacesOnTheFloor(self):
         wIndex = 0
         freeFloorPlaces = []
