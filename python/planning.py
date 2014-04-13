@@ -1,8 +1,11 @@
-from Queue import PriorityQueue
+from heapq import *
 
 world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
 world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+
+worldIdList = [(world,0)]
+
 goal = ["onTop,c,a"]
 objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
@@ -177,37 +180,49 @@ def checkStuff(object):
 		else:
 			stack = stack+1
 
-# def searchForPickUp(world, goal):
-# 	closedSet = []
-# 	openSet = Queue.PriorityQueue()
-# 	start = (heuristic_cost_estimate(world, goal), world)
-# 	openSet.put(start)
-# 	cameFrom = []
+def searchForPickUp(world, goal):
+	closedSet = []
+	openSet = []
+	
+	# heappush(openSet, (5, 'write code'))
+	# heappush(openSet, (7, 'release product'))
+	# heappush(openSet, (10, 'write spec'))
+	# heappush(openSet, (3, 'create tests'))
+	# return heappop(openSet)
 
-# 	g_score = [0]
-# 	f_score = g_score + heuristic_cost_estimate(world, goal)
+	start = heuristic_cost_estimate(goal)
+	heappush(openSet, (start, world))
+	cameFrom = []
 
-# 	while openSet is not []:
-# 		current = openSet.get()
+	g_score = [0]
+	f_score = g_score[0] + heuristic_cost_estimate(goal)
+	currentID = 0
 
-# 		if (isGoal(current, goal)):
-# 			return reconstruct_path(cameFrom, goal)
+	while openSet != []:
+		current = heappop(openSet)
+		print "CURRENT: ", current
 
-# 		closedSet.append(current)
+		if (isGoal(current, goal)):
+			return reconstruct_path(cameFrom, goal)
 
-# 		for eachNeighbour in performMove(current):		
-# 			if eachNeighbour in closedSet: # Fix later
-# 				continue
+		closedSet.append(current)
+
+		for eachNeighbour in performMove(goal, world):		
+			if eachNeighbour in closedSet: # Fix later
+				continue
 			
-# 			temporaryCost = g_score[current] + moveDistance(current, neighbor)
+			print current[1]
+			print eachNeighbour[1]
+			# temporaryCost = g_score[currentID] + moveDistance(current[1], eachNeighbour[1])
+			currentID = currentID + 1
 
-# 			if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
-# 				cameFrom[neighbor] = current
-# 				g_score[neighbor]  = temporaryCost
-# 				f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+	# 		if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
+	# 			cameFrom[neighbor] = current
+	# 			g_score[neighbor]  = temporaryCost
+	# 			f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
 
-# 				if (neighbor not in openSet):
-# 					openSet.put(neighbor)
+	# 			if (neighbor not in openSet):
+	# 				openSet.put(neighbor)
 
 def heuristic_cost_estimate(goal):
 	goalList = goal[0].split(",")
@@ -295,7 +310,9 @@ def isGoal(world, goal):
 			return False
 
 if __name__ == '__main__':
-	print performMove(["onTop,c,a"], world)
+	# print performMove(["onTop,c,a"], world)
 	#print getLocation("a")
-	print heuristic_cost_estimate(goal)
-	print moveDistance(world, world2)
+	# print heuristic_cost_estimate(goal)
+	# print moveDistance(world, world2)
+	print searchForPickUp(world, goal)
+	# print worldIdList
