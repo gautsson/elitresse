@@ -1,23 +1,6 @@
-world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-objects = {
-        "a": { "form":"brick",   "size":"large",  "color":"green" },
-        "b": { "form":"brick",   "size":"small",  "color":"white" },
-        "c": { "form":"plank",   "size":"large",  "color":"red"   },
-        "d": { "form":"plank",   "size":"small",  "color":"green" },
-        "e": { "form":"ball",    "size":"large",  "color":"white" },
-        "f": { "form":"ball",    "size":"small",  "color":"black" },
-        "g": { "form":"table",   "size":"large",  "color":"blue"  },
-        "h": { "form":"table",   "size":"small",  "color":"red"   },
-        "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-        "j": { "form":"pyramid", "size":"small",  "color":"red"   },
-        "k": { "form":"box",     "size":"large",  "color":"yellow"},
-        "l": { "form":"box",     "size":"large",  "color":"red"   },
-        "m": { "form":"box",     "size":"small",  "color":"blue"} }
-
-test = {
-        "a": { "form":"brick",   "size":"large",  "color":"green" }}
-holding = False
-
+#
+# Lots of helper functions which I wrote...
+#
 
 # Gets the number of stacks in the world
 def getWorldLength(world):
@@ -93,22 +76,84 @@ def getStacksWithSmallObjectsOnTop(world):
 			topSmallObjectStacks.append(stack)
 	return topSmallObjectStacks
 
-def test():
-	return["pick 1", "drop 2", "pick 3", "drop 2"]
 
-# Gets stacks which do NOT have either a ball on top or 
+#
+# Crucial functions which are used!
+#
+
+
+def test():
+	return ["pick 1", "drop 2"]
+
+
+# 
+def getObjectStack(object):
+	stack = 0
+	for item in world:
+		if object in item:
+			return stack
+		else:
+			stack = stack+1
+
+# A function which does different things depending on which relation the source and target objects have
+def performMove(goal, world):
+	#return["pick 1", "drop 2", "pick 3", "drop 2"]
+	goal = ["onTop,c,a"]
+	goalList = goal[0].split(",")
+
+	relation = goalList[0]
+	sourceObject = goalList[1]
+	targetObject = goalList[2]
+
+	sourceObjectStack = getObjectStack(sourceObject)
+	targetObjectStack = getObjectStack(targetObject)
+
+	if relation == "onTop":
+		if isTargetObjectOnTop(targetObject, world):
+			return ["pick " + str(sourceObjectStack)]
+		else:
+			return ["pick " + str(targetObjectStack)]
+
+	elif relation == "inside":
+		return "inside"
+	elif relation == "above":
+		return "dfsfd"
+	elif relation == "under":
+		return "under"
+	elif relation == "beside":
+		return "beside"
+	elif relation == "leftOf":
+		return "to the left"
+	elif relation == "rightOf":
+		return "to the right"
+
+# Checks whether the target object is on top of a stack or not
+def isTargetObjectOnTop(targetObject, world):
+	topList = getTopObject(world)
+	if targetObject in topList:
+		return True
+	else:
+		return False
+
 
 
 if __name__ == '__main__':
-	# print(objects)
-	#print getTopObject(world)
-	#print getOrderedListOfObjects(world)
-	#print getWorldLength(world)
-	#print getEmptyStacks(world)
-	#print getStacksWithBallsOnTop(world)
-	#print getStacksWithSmallObjectsOnTop(world)
-	print getAllStacks(world)
-	print test()
 
-	#a = ("ontop", "e", "g")
-	#print str(a)
+	world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+	objects = {
+        "a": { "form":"brick",   "size":"large",  "color":"green" },
+        "b": { "form":"brick",   "size":"small",  "color":"white" },
+        "c": { "form":"plank",   "size":"large",  "color":"red"   },
+        "d": { "form":"plank",   "size":"small",  "color":"green" },
+        "e": { "form":"ball",    "size":"large",  "color":"white" },
+        "f": { "form":"ball",    "size":"small",  "color":"black" },
+        "g": { "form":"table",   "size":"large",  "color":"blue"  },
+        "h": { "form":"table",   "size":"small",  "color":"red"   },
+        "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+        "j": { "form":"pyramid", "size":"small",  "color":"red"   },
+        "k": { "form":"box",     "size":"large",  "color":"yellow"},
+        "l": { "form":"box",     "size":"large",  "color":"red"   },
+        "m": { "form":"box",     "size":"small",  "color":"blue"} }
+
+
+	print performMove(["onTop,c,a"], world)

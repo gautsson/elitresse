@@ -67,9 +67,10 @@ def solve(goal, world, holding, objects):
     #col = list(map(bool, world)).index(True)
     #return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
     #return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
-    if goal == "onTop,c,a":
-        return planning.test()
-    else: return ["pick 1", "drop 1"]
+    # return ["pick 1", "drop 2"]
+    # goal = ["onTop,c,a"]
+    #return planning.performMove(goal, world)
+    return planning.test()
 
 def main(utterance, world, holding, objects, **_):
     result = {}
