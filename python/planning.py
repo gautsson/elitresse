@@ -2,7 +2,17 @@ from heapq import *
 from copy import deepcopy
 
 # Global variables which are temporarily here for testing
-startWorld = [["e"],["a","l"],[]]
+startWorld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+startWorld2 = [["e"],["a"],["l"],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+startWorld3 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],[],["d","m","f"]]
+startWorld4 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],["f"],["d","m"]]
+startWorld5 = [[],["a"],["l"],[],["i","h","j"],["e"],[],["k","g","c","b"],["f"],["d","m"]]
+startWorld6 = [[],["a"],["l"],[],["i","h"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
+startWorld7 = [["h"],["a"],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
+startWorld8 = [["h","a"],[],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
+startWorld9 = [["h","a"],[],["l"],[],["i"],[],["j"],["k","g","c","b"],["f"],["d","m"]]
+
+
 world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
 world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 
@@ -125,7 +135,7 @@ def test():
 
 
 # Gets the stack of an object
-def getObjectStack(object):
+def getObjectStack(object, world):
 	stack = 0
 	for item in world:
 		if object in item:
@@ -240,17 +250,17 @@ def checkStuff(object):
 
 
 def performMove(node):
-	neighbors = list()    
-    
-	for pickStack in range (getWorldLength(startWorld)):		
-		for dropStack in range (getWorldLength(startWorld)):
-            neighborNode = copy.deepcopy(node)
-            object = pick(world, stack)
-            
-            if (getStackHeight(neighborNode.world, pickStack) == 0):
-                pass
+    neighbors = list()    
+
+    for pickStack in range (getWorldLength(startWorld)):		
+        for dropStack in range (getWorldLength(startWorld)):
+            neighborNode = deepcopy(node)
+            object = pick(neighborNode.world, pickStack)
+
+            if (object == None):
+                continue
+
             neighbors.append(drop(neighborNode.world, stack, object))
-	
     return neighbors	
 
 def getTopObject(world, stack):
@@ -278,11 +288,53 @@ def heuristic_cost_estimate(world, goal):
 
 	return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
-def reconstructPath(node):
-	wrld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-	wrld2 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b","f"],[],["d","m"]]
+def reconstructPath(node, commandString):
+  if node.parent.parent == None: # Base case
+    print 'hej'
+    parentNode, command = parseNode(node)
+    return command + commandString
+  else:
+    print 'hej2'
+    parentNode, command = parseNode(node)
+    return reconstructPath(parentNode, command + commandString)
+    
 
+	
+def parseNode(node):  
+  #parentWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]] # OLD WORLD
+	#currentWorld = [["e"],["a","l"],[],[],["i","h","j"],["f"],[],["k","g","c","b"],[],["d","m"]] # NEW WORLD
+    parentNode = node.parent
+ 
+    parentWorld = node.parent.world
+ #   print parentWorld
+    currentWorld = node.world
+  #  print currentWorld
+    worldLength = len (parentWorld)
+    list = []
 
+    world1concat = [value for sublist in parentWorld for value in sublist]
+    world2concat = [value for sublist in currentWorld for value in sublist]
+    pickString = ""
+    dropString = ""
+
+    if (len (world1concat) == len (world2concat)):
+
+        for i in range(0,worldLength):
+            if currentWorld[i] > parentWorld[i]:
+                dropString = "drop " + str(i)
+            if currentWorld[i] < parentWorld[i]:
+                pickString = "pick " + str(i)
+
+        list.append(pickString)
+        list.append(dropString)
+        return (parentNode, list)
+    else:
+        # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
+        changedElement = (set(world1concat) - set(world2concat)).pop()
+        theStack = getObjectStack("f", parentWorld)
+        newCommand = "pick " + str(theStack)
+        list.append(newCommand)
+        return (parentNode, list)
 
 def movementCost(fromWorld, toWorld):
 	start = -1
@@ -376,8 +428,26 @@ if __name__ == '__main__':
 	#print getStackHeight(world2, 0)
 	#print heuristic_cost_estimate(startWorld, goal)
     
-    testNode = Node(None, startWorld, 0, 0, 0)
-    
-    neighbors = performMove(testNode)
-    
-    print neighbors
+  #testNode = Node(None, startWorld, 0, 0, 0)
+  
+  #neighbors = performMove(testNode)
+  
+  #print neighbors
+	
+    #print performMove(world2)
+	#print getTopObject(world2, 5)
+  
+    node1 = Node(None, startWorld1, 0, 0, 0)
+    node2 = Node(node1, startWorld2, 0, 0, 0)
+    node3 = Node(node2, startWorld3, 0, 0, 0)
+    node4 = Node(node3, startWorld4, 0, 0, 0)
+    node5 = Node(node4, startWorld5, 0, 0, 0)
+    node6 = Node(node5, startWorld6, 0, 0, 0)
+    node7 = Node(node6, startWorld7, 0, 0, 0)
+    node8 = Node(node7, startWorld8, 0, 0, 0)
+    node9 = Node(node8, startWorld9, 0, 0, 0)
+  
+  #node = Node(None, startWorld2, 0, 0, 0)
+  #node2 = Node(node, startWorld, 4, 2, 6)
+  #print parseNode(node2)
+    print reconstructPath(node9, [])
