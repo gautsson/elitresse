@@ -1,5 +1,5 @@
 from heapq import *
-import copy.deepcopy
+from copy import deepcopy
 
 # Global variables which are temporarily here for testing
 startWorld = [["e"],["a","l"],[]]
@@ -26,7 +26,7 @@ objects = {
 
 
 class Node:
-    parent, world, g, h, f
+	# parent, world, g, h, f
     
     def __init__(self, parent, world, g, h, f):
         self.parent = parent
@@ -196,53 +196,52 @@ def checkStuff(object):
 
     
 		
-def search(world, goal):
-    closedSet = []
-    openSet = []
+# def search(world, goal):
+#     closedSet = []
+#     openSet = []
 
-    # heappush(openSet, (5, 'write code'))
+#     # heappush(openSet, (5, 'write code'))
 
-    g_score = 0
-    h_score = 0
-    f_score = 0
+#     g_score = 0
+#     h_score = 0
+#     f_score = 0
 
-    startNode = Node(None, world, g_score, h_score, f_score)
+#     startNode = Node(None, world, g_score, h_score, f_score)
 
-    start = (0, startNode)
-    heappush(openSet, start)
-        
-    while openSet != []:
-		currentNode = heappop(openSet)
-		print "CURRENT: ", currentNode
+#     start = (0, startNode)
+#     heappush(openSet, start)
 
-		if (isGoal(current, goal)):
-			return reconstruct_path(currentNode)
+#     while openSet != []:
+# 		currentNode = heappop(openSet)
+# 		print "CURRENT: ", currentNode
 
-		closedSet.append(currentNode)
+# 		if (isGoal(current, goal)):
+# 			return reconstruct_path(currentNode)
 
-		for neighbor in performMove(currentNode):
+# 		closedSet.append(currentNode)
+
+# 		for neighbor in performMove(currentNode):
             
-            if nodeInOpen(neighbor) and 		
-            neighbor.g = currentNode.g + movementCost(currentNode, neighbor)
-            neighbor.h = heuristic_cost_estimate(neighbor, goal)
-            neighbor.f = g_score + h_score
+#             if nodeInOpen(neighbor) and 		
+#             neighbor.g = currentNode.g + movementCost(currentNode, neighbor)
+#             neighbor.h = heuristic_cost_estimate(neighbor, goal)
+#             neighbor.f = g_score + h_score
 			
-            cost = currentNode.g + movementCost(currentNode, neighbor)		
+#             	cost = currentNode.g + movementCost(currentNode, neighbor)		
 
-	# 		if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
-	# 			cameFrom[neighbor] = current
-	# 			g_score[neighbor]  = temporaryCost
-	# 			f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+# 	# 		if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
+# 	# 			cameFrom[neighbor] = current
+# 	# 			g_score[neighbor]  = temporaryCost
+# 	# 			f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+
 
 	# 			if (neighbor not in openSet):
 	# 				openSet.put(neighbor)
-    
-    
+
 
 def performMove(node):
 	neighbors = list()
-	
-    neighborNode = copy.deepcopy(node)
+	neighborNode = copy.deepcopy(node)
     
 	for stack in range (getWorldLength(startWorld)):
 		object = pick(world, stack)
@@ -281,7 +280,10 @@ def heuristic_cost_estimate(world, goal):
 	return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
 def reconstructPath(node):
-	pass
+	wrld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+	wrld2 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b","f"],[],["d","m"]]
+
+
 
 def movementCost(fromWorld, toWorld):
 	start = -1
