@@ -125,7 +125,7 @@ def test():
 
 
 # Gets the stack of an object
-def getObjectStack(object):
+def getObjectStack(object, world):
 	stack = 0
 	for item in world:
 		if object in item:
@@ -279,11 +279,35 @@ def heuristic_cost_estimate(world, goal):
 
 	return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
-def reconstructPath(node):
-	wrld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-	wrld2 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b","f"],[],["d","m"]]
+def reconstructPath():
+	wrld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]] # OLD WORLD
+	wrld2 = [["e"],["a","l"],[],[],["i","h","j"],["f"],[],["k","g","c","b"],[],["d","m"]] # NEW WORLD
+	worldLength = len (wrld1)
+	list = []
 
+	world1concat = [value for sublist in wrld1 for value in sublist]
+	world2concat = [value for sublist in wrld2 for value in sublist]
+	pickString = ""
+	dropString = ""
 
+	if (len (world1concat) == len (world2concat)):
+
+		for i in range(0,worldLength):
+			if wrld2[i] > wrld1[i]:
+				dropString = "drop " + str(i)
+			if wrld2[i] < wrld1[i]:
+				pickString = "pick " + str(i)
+
+		list.append(pickString)
+		list.append(dropString)
+		return list
+	else:
+		# This loop gets run if the last command is pick, i.e. the arm ends up holding an object
+		changedElement = (set(world1concat) - set(world2concat)).pop()
+		theStack = getObjectStack("f", wrld1)
+		newCommand = "pick " + str(theStack)
+		list.append(newCommand)
+		return list
 
 def movementCost(fromWorld, toWorld):
 	start = -1
@@ -378,5 +402,7 @@ if __name__ == '__main__':
 	#print heuristic_cost_estimate(startWorld, goal)
 	
 	#print performMove(world2)
-	print getTopObject(world2, 5)
+	#print getTopObject(world2, 5)
+	print reconstructPath()
+
 
