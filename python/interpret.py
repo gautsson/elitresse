@@ -12,7 +12,7 @@ class Interpreter:
     """
         
     def __init__(self):
-        None        
+        pass     
         
     def interpret(self, parse_trees):
         """

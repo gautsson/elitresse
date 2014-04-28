@@ -1,4 +1,5 @@
 from heapq import *
+import copy.deepcopy
 
 # Global variables which are temporarily here for testing
 startWorld = [["e"],["a","l"],[]]
@@ -29,6 +30,7 @@ class Node:
     
     def __init__(self, parent, world, g, h, f):
         self.parent = parent
+        self.world = world
         self.g = g
         self.h = h
         self.f = f
@@ -234,10 +236,14 @@ def search(world, goal):
 
 	# 			if (neighbor not in openSet):
 	# 				openSet.put(neighbor)
+    
+    
 
 def performMove(node):
 	neighbors = list()
 	
+    neighborNode = copy.deepcopy(node)
+    
 	for stack in range (getWorldLength(startWorld)):
 		object = pick(world, stack)
 		
@@ -274,7 +280,7 @@ def heuristic_cost_estimate(world, goal):
 
 	return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
-def reconstructPath(cameFrom, goal):
+def reconstructPath(node):
 	pass
 
 def movementCost(fromWorld, toWorld):
