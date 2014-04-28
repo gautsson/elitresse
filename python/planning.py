@@ -1,13 +1,13 @@
 from heapq import *
 
 # Global variables which are temporarily here for testing
-world = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+startWorld = [["e"],["a","l"],[]]
 world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
 world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 
-worldIdList = [(world,0)]
+#worldIdList = [(world,0)]
 
-goal = ["onTop,c,a"]
+goal = ["onTop", "c", "a"]
 objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
     "b": { "form":"brick",   "size":"small",  "color":"white" },
@@ -24,13 +24,23 @@ objects = {
     "m": { "form":"box",     "size":"small",  "color":"blue"} }
 
 
+class Node:
+    parent, world, g, h, f
+    
+    def __init__(self, parent, world, g, h, f):
+        self.parent = parent
+        self.g = g
+        self.h = h
+        self.f = f
+   
+    def compareTo(self, Node):
+       pass 
+
 #
 # Lots of helper functions here below:
 #
 
 # Gets the number of stacks in the world
-def getWorldLength(world):
-	return len(world)
 
 # Returns a list of the stacks in the world
 def getAllStacks(world):
@@ -161,6 +171,16 @@ def isTargetObjectOnTop(targetObject, world):
 	else:
 		return False
 
+def checkStuff(object):
+	stack = 0
+	for item in world:
+		if object in item:
+			return stack
+		else:
+			stack = stack+1
+
+
+
 
 ###
 #
@@ -172,50 +192,40 @@ def isTargetObjectOnTop(targetObject, world):
 #
 ##
 
+    
+		
+def search(world, goal):
+    closedSet = []
+    openSet = []
 
-def checkStuff(object):
-	stack = 0
-	for item in world:
-		if object in item:
-			return stack
-		else:
-			stack = stack+1
+    # heappush(openSet, (5, 'write code'))
 
-def searchForPickUp(world, goal):
-	closedSet = []
-	openSet = []
-	
-	# heappush(openSet, (5, 'write code'))
-	# heappush(openSet, (7, 'release product'))
-	# heappush(openSet, (10, 'write spec'))
-	# heappush(openSet, (3, 'create tests'))
-	# return heappop(openSet)
+    g_score = 0
+    h_score = 0
+    f_score = 0
 
-	start = heuristic_cost_estimate(goal)
-	heappush(openSet, (start, world))
-	cameFrom = []
+    startNode = Node(None, world, g_score, h_score, f_score)
 
-	g_score = [0]
-	f_score = g_score[0] + heuristic_cost_estimate(goal)
-	currentID = 0
-
-	while openSet != []:
-		current = heappop(openSet)
-		print "CURRENT: ", current
+    start = (0, startNode)
+    heappush(openSet, start)
+        
+    while openSet != []:
+		currentNode = heappop(openSet)
+		print "CURRENT: ", currentNode
 
 		if (isGoal(current, goal)):
-			return reconstruct_path(cameFrom, goal)
+			return reconstruct_path(currentNode)
 
-		closedSet.append(current)
+		closedSet.append(currentNode)
 
-		for eachNeighbour in performMove(goal, world):		
-			if eachNeighbour in closedSet: # Fix later
-				continue
+		for neighbor in performMove(currentNode):
+            
+            if nodeInOpen(neighbor) and 		
+            neighbor.g = currentNode.g + movementCost(currentNode, neighbor)
+            neighbor.h = heuristic_cost_estimate(neighbor, goal)
+            neighbor.f = g_score + h_score
 			
-			print current[1]
-			print eachNeighbour[1]
-			# temporaryCost = g_score[currentID] + moveDistance(current[1], eachNeighbour[1])
-			currentID = currentID + 1
+            cost = currentNode.g + movementCost(currentNode, neighbor)		
 
 	# 		if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
 	# 			cameFrom[neighbor] = current
@@ -225,59 +235,83 @@ def searchForPickUp(world, goal):
 	# 			if (neighbor not in openSet):
 	# 				openSet.put(neighbor)
 
-def heuristic_cost_estimate(goal):
-	goalList = goal[0].split(",")
-	relation, objA, objB = goalList
+def performMove(node):
+	neighbors = list()
 	
-	locA = getLocation(objA)
-	locB = getLocation(objB)
+	for stack in range (getWorldLength(startWorld)):
+		object = pick(world, stack)
+		
+		if (object != None):
+			continue
+		
+		for stack in range (getWorldLength(startWorld)):
+			neighbors.append(drop(world, stack, object))
+			
+	return neighbors	
 
-	return abs((locA[1] - getStackHeight(locA[0])) + (locB[1] - getStackHeight(locB[0])))
+def getTopObject(world, stack):
+	stackHeight = getStackHeight(world,stack)
+	
+	if stackHeight == 0:
+		return None
+	else:
+		return world[stack][stackHeight-1]
+
+def pick(world, column):
+	if (getStackHeight(world, column) > 0):
+		return world[column].pop()
+	else:
+		return None
+	
+def drop(world, column, object):
+	return world[column].append(object)
+
+def heuristic_cost_estimate(world, goal):
+	relation, objA, objB = goal
+	
+	locA = getLocation(world, objA)
+	locB = getLocation(world, objB)
+
+	return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
 def reconstructPath(cameFrom, goal):
 	pass
 
-def moveDistance(fromNode, toNode):
+def movementCost(fromWorld, toWorld):
 	start = -1
 	end = -1
 	
-	for column in range(getWorldLength(world)):
-		if (len(fromNode[column]) != len(toNode[column]) and start == -1):
+	for column in range(getWorldLength(startWorld)):
+		if (len(fromWorld[column]) != len(toWorld[column]) and start == -1):
 			start = column
-		elif (len(fromNode[column]) != len(toNode[column]) and end == -1):
+		elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
 			end = column
 			
 	return abs(end - start)	
+	
+# Constraints:
+# Balls must be in boxes or on the floor, otherwise they roll away
+# Balls cannot support anything
+# Small objects cannot support large objects
+# Boxes cannot contain pyramids or planks of the same size
+# Boxes can only be supported by tables or planks of the same size,
+# but large boxes can also be supported by large bricks.
 
-def pick(column):
-	return world.pop(column)
+def getPlausibleStacks(world, object):
+	stacks = getAllStacks(world)
+	objDescrip = getObjectDescription(object)
+	
+	
+	
 
-def drop(column):
-	world.append(object)
 
-#
-def getLocation(object):	
-	for column in range(getWorldLength(world)):
-		for row in range(getStackHeight(column)):
-			if object == getObject(column, row):
-				return (column, row)
-
-def getStackHeight(stack):
-	return len(world[stack])
-
-def getObject(column, row):
-	return world[column][row]
 
 # Checks whether the goal has been satisfied or not
 def isGoal(world, goal):
-	goalList = goal[0].split(",")
+	relation, sourceObject, targetObject = goal
 
-	relation = goalList[0]
-	sourceObject = goalList[1]
-	targetObject = goalList[2]
-
-	sourceObjectLocation = getLocation(sourceObject)
-	targetObjectLocation = getLocation(targetObject)
+	sourceObjectLocation = getLocation(world, sourceObject)
+	targetObjectLocation = getLocation(world, targetObject)
 
 	if relation == "onTop" or relation == "inside":
 		if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1:
@@ -309,11 +343,32 @@ def isGoal(world, goal):
 			return True
 		else:
 			return False
+		
+		
+# Utility functions
+def getWorldLength(world):
+	return len(world)
+
+def getStackHeight(world, stack):
+	return len(world[stack])
+
+def getObject(world, column, row):
+	return world[column][row]
+
+def getObjectDescription(object):
+	return objects[object]
+
+def getLocation(world, object):	
+	for column in range(getWorldLength(startWorld)):
+		for row in range(getStackHeight(world, column)):
+			if object == getObject(world, column, row):
+				return (column, row)
+
 
 if __name__ == '__main__':
-	# print performMove(["onTop,c,a"], world)
-	#print getLocation("a")
-	# print heuristic_cost_estimate(goal)
-	# print moveDistance(world, world2)
-	print searchForPickUp(world, goal)
-	# print worldIdList
+	#print getStackHeight(world2, 0)
+	#print heuristic_cost_estimate(startWorld, goal)
+	
+	#print performMove(world2)
+	print getTopObject(world2, 5)
+
