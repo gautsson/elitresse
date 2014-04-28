@@ -134,36 +134,36 @@ def getObjectStack(object):
 			stack = stack+1
 
 # A function which does different things depending on which relation the source and target objects have
-def performMove(goal, world):
-	#return["pick 1", "drop 2", "pick 3", "drop 2"]
-	goal = ["onTop,c,a"]
-	goalList = goal[0].split(",")
-
-	relation = goalList[0]
-	sourceObject = goalList[1]
-	targetObject = goalList[2]
-
-	sourceObjectStack = getObjectStack(sourceObject)
-	targetObjectStack = getObjectStack(targetObject)
-
-	if relation == "onTop":
-		if isTargetObjectOnTop(targetObject, world):
-			return ["pick " + str(sourceObjectStack)]
-		else:
-			return ["pick " + str(targetObjectStack)]
-
-	elif relation == "inside":
-		return "inside"
-	elif relation == "above":
-		return "dfsfd"
-	elif relation == "under":
-		return "under"
-	elif relation == "beside":
-		return "beside"
-	elif relation == "leftOf":
-		return "to the left"
-	elif relation == "rightOf":
-		return "to the right"
+# def performMove(goal, world):
+# 	#return["pick 1", "drop 2", "pick 3", "drop 2"]
+# 	goal = ["onTop,c,a"]
+# 	goalList = goal[0].split(",")
+# 
+# 	relation = goalList[0]
+# 	sourceObject = goalList[1]
+# 	targetObject = goalList[2]
+# 
+# 	sourceObjectStack = getObjectStack(sourceObject)
+# 	targetObjectStack = getObjectStack(targetObject)
+# 
+# 	if relation == "onTop":
+# 		if isTargetObjectOnTop(targetObject, world):
+# 			return ["pick " + str(sourceObjectStack)]
+# 		else:
+# 			return ["pick " + str(targetObjectStack)]
+# 
+# 	elif relation == "inside":
+# 		return "inside"
+# 	elif relation == "above":
+# 		return "dfsfd"
+# 	elif relation == "under":
+# 		return "under"
+# 	elif relation == "beside":
+# 		return "beside"
+# 	elif relation == "leftOf":
+# 		return "to the left"
+# 	elif relation == "rightOf":
+# 		return "to the right"
 
 # Checks whether the target object is on top of a stack or not
 def isTargetObjectOnTop(targetObject, world):
@@ -240,19 +240,18 @@ def checkStuff(object):
 
 
 def performMove(node):
-	neighbors = list()
-	neighborNode = copy.deepcopy(node)
+	neighbors = list()    
     
-	for stack in range (getWorldLength(startWorld)):
-		object = pick(world, stack)
-		
-		if (object != None):
-			continue
-		
-		for stack in range (getWorldLength(startWorld)):
-			neighbors.append(drop(world, stack, object))
-			
-	return neighbors	
+	for pickStack in range (getWorldLength(startWorld)):		
+		for dropStack in range (getWorldLength(startWorld)):
+            neighborNode = copy.deepcopy(node)
+            object = pick(world, stack)
+            
+            if (getStackHeight(neighborNode.world, pickStack) == 0):
+                pass
+            neighbors.append(drop(neighborNode.world, stack, object))
+	
+    return neighbors	
 
 def getTopObject(world, stack):
 	stackHeight = getStackHeight(world,stack)
@@ -376,7 +375,9 @@ def getLocation(world, object):
 if __name__ == '__main__':
 	#print getStackHeight(world2, 0)
 	#print heuristic_cost_estimate(startWorld, goal)
-	
-	#print performMove(world2)
-	print getTopObject(world2, 5)
-
+    
+    testNode = Node(None, startWorld, 0, 0, 0)
+    
+    neighbors = performMove(testNode)
+    
+    print neighbors
