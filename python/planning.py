@@ -118,16 +118,6 @@ def getEmptyStacks(world):
     return x
 
 # Gets the top objects on the stacks which are in the world
-<<<<<<< HEAD
-#def getTopObject(world):
-#   balls = []
-#   for object in world:
-#       if object != []:
-#           balls.append(object[-1])
-#       else:
-#           balls.append([])
-#   return balls
-=======
 # def getTopObject(world):
 #    balls = []
 #    for object in world:
@@ -136,7 +126,6 @@ def getEmptyStacks(world):
 #        else:
 #            balls.append([])
 #    return balls
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
 
 # Gets an ordered list of all the objects in the world
 def getOrderedListOfObjects(world):
@@ -308,10 +297,6 @@ def performMove(node):
 
 def getTopObject(world, stack):
     stackHeight = getStackHeight(world,stack)
-<<<<<<< HEAD
-    
-=======
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
     if stackHeight == 0:
         return None
     else:
@@ -322,30 +307,17 @@ def pick(world, stack):
         return world[stack].pop()
     else:
         return None
-<<<<<<< HEAD
-    
-=======
-	
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
+
+
 def drop(world, stack, object):
     return world[stack].append(object)
 
 def heuristic_cost_estimate(world, goal):
-    relation, objA, objB = goal
-<<<<<<< HEAD
-    
+    relation, objA, objB = goal	
     locA = getLocation(world, objA)
     locB = getLocation(world, objB)
-
-    return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
-=======
-	
-    locA = getLocation(world, objA)
-    locB = getLocation(world, objB)
-
     return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
 
 def reconstructPath(node, commandString):
     if node.parent == None: # Base case
@@ -354,11 +326,7 @@ def reconstructPath(node, commandString):
         parentNode, command = parseNode(node)
         return reconstructPath(parentNode, command + commandString)
 
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
 def parseNode(node):  
     #parentWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]] # OLD WORLD
     #currentWorld = [["e"],["a","l"],[],[],["i","h","j"],["f"],[],["k","g","c","b"],[],["d","m"]] # NEW WORLD
@@ -453,13 +421,8 @@ def isGoal(world, goal):
             return True
         else:
             return False
-<<<<<<< HEAD
-        
-        
-=======
-		
-		
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
+
+
 # Utility functions
 def getWorldLength(world):
     return len(world)
@@ -473,11 +436,7 @@ def getObject(world, column, row):
 def getObjectDescription(object):
     return objects[object]
 
-<<<<<<< HEAD
 def getLocation(world, object): 
-=======
-def getLocation(world, object):	
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
     for column in range(getWorldLength(startWorld)):
         for row in range(getStackHeight(world, column)):
             if object == getObject(world, column, row):
@@ -485,19 +444,6 @@ def getLocation(world, object):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    #print getStackHeight(world2, 0)
-    #print heuristic_cost_estimate(startWorld, goal)
-    
- 
-  
-  #print neighbors
-    
- #print performMove(world2)
-    #print getTopObject(world2, 5)
-=======
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
-  
     node1 = Node(None, startWorld1, 0, 0, 0)
     node2 = Node(node1, startWorld2, 0, 0, 0)
     node3 = Node(node2, startWorld3, 0, 0, 0)
@@ -508,24 +454,12 @@ if __name__ == '__main__':
     node8 = Node(node7, startWorld8, 0, 0, 0)
     node9 = Node(node8, startWorld9, 0, 0, 0)
 
-<<<<<<< HEAD
-    #print parseNode(node2)
     print reconstructPath(node9, [])
-    
-    
-    pickAndDrop = search(startWorld, goal)
-    print pickAndDrop
-      
-=======
+
     print node9.world
     goal = ["onTop", "c", "a"]
     print reconstructPath(node9, [])
 
     #startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-
-    
-
     #pickAndDrop = search(startWorld, goal)
     #print pickAndDrop
->>>>>>> 2dd216dac7281c5d17406b20b5c2376cb0b7ea3f
-
