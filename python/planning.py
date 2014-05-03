@@ -1,25 +1,9 @@
 from heapq import *
 from copy import deepcopy
 
-# Global variables which are temporarily here for testing
-#startWorld = [["a", "c","b"],["m"],["g"]]
-#CHANGE LIST INDEXING IN PERFORMMOVE
-startWorld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","b","c"],[],["d","m","f"]]
-startWorld2 = [["e"],["a"],["l"],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-startWorld3 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],[],["d","m","f"]]
-startWorld4 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],["f"],["d","m"]]
-startWorld5 = [[],["a"],["l"],[],["i","h","j"],["e"],[],["k","g","c","b"],["f"],["d","m"]]
-startWorld6 = [[],["a"],["l"],[],["i","h"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
-startWorld7 = [["h"],["a"],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
-startWorld8 = [["h","a"],[],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
-startWorld9 = [["h","a"],[],["l"],[],["i"],[],["j"],["k","g","c","b"],["f"],["d","m"]]
-
-world = [["c","b"],["a" ,"m"],["g"]]
-
-world2 = [["e"],["m"],[]]
-world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-
-#worldIdList = [(world,0)]""
+#
+# Temporary stuff just for testing and debugging purposes
+#
 
 startWorld = [["e"],["a","l"],[],["c","d","f"]]
 goal = ["onTop", "c", "a"]
@@ -38,6 +22,9 @@ objects = {
     "l": { "form":"box",     "size":"large",  "color":"red"   },
     "m": { "form":"box",     "size":"small",  "color":"blue"} }
 
+#
+# Node class, which stores information about all the states the world goes through
+#
 
 class Node:
     # parent, world, g, h, f
@@ -52,6 +39,18 @@ class Node:
    
     def compareTo(self, node):
        return self.world == node.world 
+
+#
+# Rules class which holds the constraints
+#
+
+# Constraints:
+# Balls must be in boxes or on the floor, otherwise they roll away
+# Balls cannot support anything
+# Small objects cannot support large objects
+# Boxes cannot contain pyramids or planks of the same size
+# Boxes can only be supported by tables or planks of the same size,
+# but large boxes can also be supported by large bricks.
 
 class Rules:
 
@@ -74,116 +73,19 @@ class Rules:
         else:
             return True
 
-#    def ballCannotSupport(self, object, stackObject):
+# To Do:
 
+#    def ballCannotSupport(self, object, stackObject):
 
 #    def smallObjectSupport(self, object, stackObject:
 
 #    def boxCannotContain(self, object, stackObject):
 
-
 #    def boxSupported(self, object, stackObject):
 
 #    def largeBoxSupported(self, object, stackObject):
 
-
-
-
-        # Constraints:
-# Balls must be in boxes or on the floor, otherwise they roll away
-# Balls cannot support anything
-# Small objects cannot support large objects
-# Boxes cannot contain pyramids or planks of the same size
-# Boxes can only be supported by tables or planks of the same size,
-# but large boxes can also be supported by large bricks.
-
-    
-
-#
-# Lots of helper functions here below:
-#
-
-# Gets the number of stacks in the world
-
-# Returns a list of the stacks in the world
-def getAllStacks(world):
-    return range(len(world))
-
-# Gets all the empty stacks in the world
-def getEmptyStacks(world):
-    x = []
-    for stack, object in enumerate(world):
-        if not object:
-            x.append(stack)
-    return x
-
-# Gets the top objects on the stacks which are in the world
-# def getTopObject(world):
-#    balls = []
-#    for object in world:
-#        if object != []:
-#            balls.append(object[-1])
-#        else:
-#            balls.append([])
-#    return balls
-
-# Gets an ordered list of all the objects in the world
-def getOrderedListOfObjects(world):
-    orderedList = [item for sublist in world for item in sublist]
-    orderedList.sort()
-    return orderedList
-
-# Gets the stack positions of all the balls which are on the top of a stack
-# (There's a rule that no objects are allowed to be put upon balls)
-def getStacksWithBallsOnTop(world):
-    topBalls = []
-    topBallStacks = []
-    topObjectsInWorld = getTopObject(world)
-    for object in topObjectsInWorld:
-        if object != []:
-            a = ''.join(object)
-            objectForm = objects[a].get("form")
-            if objectForm == "ball":
-                topBalls.append(objectForm)
-            else:
-                topBalls.append([])
-        else: 
-            topBalls.append([])
-    for stack, item in enumerate(topBalls):
-        if item is "ball":
-            topBallStacks.append(stack)
-    return topBallStacks
-
-# Gets the stack positions where small objects are on top of the stack
-# (Small objects cannot hold large objects)
-def getStacksWithSmallObjectsOnTop(world):
-    smallObjects = []
-    topSmallObjectStacks = []
-    topObjectsInWorld = getTopObject(world)
-    for object in topObjectsInWorld:
-        if object != []:
-            a = ''.join(object)
-            objectForm = objects[a].get("size")
-            if objectForm == "small":
-                smallObjects.append(objectForm)
-            else:
-                smallObjects.append([])
-        else: 
-            smallObjects.append([])
-    for stack, item in enumerate(smallObjects):
-        if item is "small":
-            topSmallObjectStacks.append(stack)
-    return topSmallObjectStacks
-
-
-#
-# More useful functions
-#
-
-# Test function used to pass commands to the shrdlite.py file and from there to the GUI
-def test():
-    return ["pick 1", "drop 2"]
-
+# ----------------------------------------------------------
 
 # Gets the stack of an object
 def getObjectStack(object, world):
@@ -194,35 +96,10 @@ def getObjectStack(object, world):
         else:
             stack = stack+1
 
-# Checks whether the target object is on top of a stack or not
-def isTargetObjectOnTop(targetObject, world):
-    topList = getTopObject(world)
-    if targetObject in topList:
-        return True
-    else:
-        return False
+#
+# The search function, our pride and joy
+#
 
-def checkStuff(object):
-    stack = 0
-    for item in world:
-        if object in item:
-            return stack
-        else:
-            stack = stack+1
-
-
-
-
-###
-#
-#
-#
-# TEST FUNCTIONS SEARCH BELOW HERE:
-#
-#
-#
-#
-        
 def search(world, goal):
     closedSet = []
     openSet = []
@@ -265,7 +142,10 @@ def search(world, goal):
                 neighborTuple = (neighbor.f, neighbor)
                 heappush(openSet, neighborTuple)
 
-                
+#
+# Helper functions for the search function 
+#
+
 def isNodeInOpenSet(openSet, node):
     index = 0
     for compNode in openSet:
@@ -285,9 +165,6 @@ def isNodeInClosedSet(closedSet, node):
 def removeNodeFromSet(set, index):
     set.pop(index)
 
-    #[[n for n in nested [nodeP for nodes in set if not nodeP[1].compareTo(node)] 
-
-
 def performMove(node):
     neighbors = list()    
 
@@ -304,19 +181,11 @@ def performMove(node):
             neighbors.append(neighborNode)
     return neighbors    
 
-def getTopObject(world, stack):
-    stackHeight = getStackHeight(world,stack)
-    if stackHeight == 0:
-        return None
-    else:
-        return world[stack][stackHeight-1]
-
 def pick(world, stack):
     if (getStackHeight(world, stack) > 0):
         return world[stack].pop()
     else:
         return None
-
 
 def drop(world, stack, object):
     return world[stack].append(object)
@@ -331,7 +200,6 @@ def heuristic_cost_estimate(world, goal):
     locB = getLocation(world, objB)
     return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
-
 def reconstructPath(node, commandString):
     if node.parent == None: # Base case
         return commandString
@@ -339,12 +207,8 @@ def reconstructPath(node, commandString):
         parentNode, command = parseNode(node)
         return reconstructPath(parentNode, command + commandString)
 
-
 def parseNode(node):  
-    #parentWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]] # OLD WORLD
-    #currentWorld = [["e"],["a","l"],[],[],["i","h","j"],["f"],[],["k","g","c","b"],[],["d","m"]] # NEW WORLD
     parentNode = node.parent
-
     parentWorld = node.parent.world
     currentWorld = node.world
     worldLength = len (parentWorld)
@@ -367,7 +231,6 @@ def parseNode(node):
         list.append(pickString)
         list.append(dropString)
             
-
         return (parentNode, list)
     elif (len (world1concat) > len (world2concat)):
         # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
@@ -441,7 +304,7 @@ def isGoal(world, goal):
             return False
 
 
-# Utility functions
+# Utility functions, remove these functions
 def getWorldLength(world):
     return len(world)
 
@@ -462,23 +325,9 @@ def getLocation(world, object):
 
 
 if __name__ == '__main__':
-    node1 = Node(None, startWorld1, 0, 0, 0)
-    node2 = Node(node1, startWorld2, 0, 0, 0)
-    node3 = Node(node2, startWorld3, 0, 0, 0)
-    node4 = Node(node3, startWorld4, 0, 0, 0)
-    node5 = Node(node4, startWorld5, 0, 0, 0)
-    node6 = Node(node5, startWorld6, 0, 0, 0)
-    node7 = Node(node6, startWorld7, 0, 0, 0)
-    node8 = Node(node7, startWorld8, 0, 0, 0)
-    node9 = Node(node8, startWorld9, 0, 0, 0)
-
-    #print reconstructPath(node9, [])
-
-    #print node9.world
-    exampleworld = [["e"],["g","l"],[],["k","m","f"],[]]
-    goal = ["onTop,e,g"]
     #print reconstructPath(node9, [])
 
     startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
+    goal = ["onTop,e,g"]
     pickAndDrop = search(startWorld, goal[0])
     print pickAndDrop
