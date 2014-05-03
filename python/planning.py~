@@ -397,6 +397,21 @@ def movementCost(fromNode, toNode):
 
     return abs(end - start)	
 
+# Constraints:
+# Balls must be in boxes or on the floor, otherwise they roll away
+# Balls cannot support anything
+# Small objects cannot support large objects
+# Boxes cannot contain pyramids or planks of the same size
+# Boxes can only be supported by tables or planks of the same size,
+# but large boxes can also be supported by large bricks.
+
+
+
+	
+	
+	
+
+
 
 # Checks whether the goal has been satisfied or not
 def isGoal(world, goal):
