@@ -206,29 +206,29 @@ def checkStuff(object):
 
     
 		
-# def search(world, goal):
-#     closedSet = []
-#     openSet = []
+def search(world, goal):
+	closedSet = []
+	openSet = []
 
-#     # heappush(openSet, (5, 'write code'))
+	heappush(openSet, (5, 'write code'))
 
-#     g_score = 0
-#     h_score = 0
-#     f_score = 0
+	g_score = 0
+	h_score = 0
+	f_score = 0
 
-#     startNode = Node(None, world, g_score, h_score, f_score)
+	startNode = Node(None, world, g_score, h_score, f_score)
 
-#     start = (0, startNode)
-#     heappush(openSet, start)
+	start = (0, startNode)
+	heappush(openSet, start)
 
-#     while openSet != []:
-# 		currentNode = heappop(openSet)
-# 		print "CURRENT: ", currentNode
+	while openSet != []:
+		currentNode = heappop(openSet)
+		print "CURRENT: ", currentNode
 
-# 		if (isGoal(current, goal)):
-# 			return reconstruct_path(currentNode)
+		if (isGoal(current, goal)):
+			return reconstruct_path(currentNode)
 
-# 		closedSet.append(currentNode)
+		closedSet.append(currentNode)
 
 # 		for neighbor in performMove(currentNode):
             
@@ -301,14 +301,12 @@ def reconstructPath(node, commandString):
 
 	
 def parseNode(node):  
-  #parentWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]] # OLD WORLD
+	#parentWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]] # OLD WORLD
 	#currentWorld = [["e"],["a","l"],[],[],["i","h","j"],["f"],[],["k","g","c","b"],[],["d","m"]] # NEW WORLD
     parentNode = node.parent
  
     parentWorld = node.parent.world
- #   print parentWorld
     currentWorld = node.world
-  #  print currentWorld
     worldLength = len (parentWorld)
     list = []
 
@@ -425,17 +423,17 @@ def getLocation(world, object):
 
 
 if __name__ == '__main__':
-	#print getStackHeight(world2, 0)
-	#print heuristic_cost_estimate(startWorld, goal)
+	# print getStackHeight(world2, 0)
+	# print heuristic_cost_estimate(startWorld, goal)
     
-  #testNode = Node(None, startWorld, 0, 0, 0)
+ #  testNode = Node(None, startWorld, 0, 0, 0)
   
-  #neighbors = performMove(testNode)
+ #  neighbors = performMove(testNode)
   
-  #print neighbors
+ #  print neighbors
 	
-    #print performMove(world2)
-	#print getTopObject(world2, 5)
+ #    print performMove(world2)
+	# print getTopObject(world2, 5)
   
     node1 = Node(None, startWorld1, 0, 0, 0)
     node2 = Node(node1, startWorld2, 0, 0, 0)
