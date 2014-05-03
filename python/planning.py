@@ -242,7 +242,6 @@ def search(world, goal):
         currentNode = heappop(openSet)[1]
 
         if (isGoal(currentNode.world, goal)):
-            print "hello"
             return reconstructPath(currentNode, list())
 
         closedSet.append(currentNode)
@@ -255,8 +254,8 @@ def search(world, goal):
             if (nodeInOpenSet != None and cost < nodeInOpenSet.g):
                 removeNodeFromSet(openSet, nodeInOpenSet)
 
-            nodeInOpenSet = nodeInSet(openSet, neighbor)
-            nodeInClosedSet = nodeInSet(closedSet, neighbor)
+            nodeInOpenSet = isNodeInOpenSet(openSet, neighbor)
+            nodeInClosedSet = isNodeInClosedSet(closedSet, neighbor)
 
             if (nodeInOpenSet == None and nodeInClosedSet == None):
                 neighbor.g = cost
@@ -268,11 +267,18 @@ def search(world, goal):
                 heappush(openSet, neighborTuple)
 
                 
-def nodeInSet(set, node):
-    index = 0
-    for compNode in set:
+def isNodeInOpenSet(openSet, node):
+    for compNode in openSet:
         if node.compareTo(compNode[1]):
             return compNode[1]
+    
+    return None
+
+def isNodeInClosedSet(closedSet, node):
+    for compNode in closedSet:
+        if node.compareTo(compNode):
+            return compNode
+    
     return None
 
 def removeNodeFromSet(set, node):
@@ -456,10 +462,6 @@ if __name__ == '__main__':
 
     print reconstructPath(node9, [])
 
-    print node9.world
-    goal = ["onTop", "c", "a"]
-    print reconstructPath(node9, [])
-
     #startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-    #pickAndDrop = search(startWorld, goal)
-    #print pickAndDrop
+    pickAndDrop = search(startWorld, goal)
+    print pickAndDrop
