@@ -4,7 +4,7 @@ from copy import deepcopy
 # Global variables which are temporarily here for testing
 #startWorld = [["a", "c","b"],["m"],["g"]]
 #CHANGE LIST INDEXING IN PERFORMMOVE
-startWorld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+startWorld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","b","c"],[],["d","m","f"]]
 startWorld2 = [["e"],["a"],["l"],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 startWorld3 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],[],["d","m","f"]]
 startWorld4 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],["f"],["d","m"]]
@@ -21,7 +21,7 @@ world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m
 
 #worldIdList = [(world,0)]""
 
-startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+startWorld = [["e"],["a","l"],[],["c","d","f"]]
 goal = ["onTop", "c", "a"]
 objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
@@ -249,15 +249,14 @@ def search(world, goal):
         for neighbor in performMove(currentNode):
             cost = currentNode.g + movementCost(currentNode, neighbor)      
 
-            nodeInOpenSet = nodeInSet(openSet, neighbor)
-
-            if (nodeInOpenSet != None and cost < nodeInOpenSet.g):
-                removeNodeFromSet(openSet, nodeInOpenSet)
-
             nodeInOpenSet = isNodeInOpenSet(openSet, neighbor)
+
+            if (nodeInOpenSet[1] != None and cost < nodeInOpenSet[1].g):
+                removeNodeFromSet(openSet, nodeInOpenSet[0])
+
             nodeInClosedSet = isNodeInClosedSet(closedSet, neighbor)
 
-            if (nodeInOpenSet == None and nodeInClosedSet == None):
+            if (nodeInOpenSet[1] == None and nodeInClosedSet == None):
                 neighbor.g = cost
                 neighbor.h = heuristic_cost_estimate(neighbor.world, goal)
                 neighbor.f = neighbor.g + neighbor.h
@@ -268,11 +267,13 @@ def search(world, goal):
 
                 
 def isNodeInOpenSet(openSet, node):
+    index = 0
     for compNode in openSet:
         if node.compareTo(compNode[1]):
-            return compNode[1]
+            return (index, compNode[1])
+        index = index + 1
     
-    return None
+    return (0, None)
 
 def isNodeInClosedSet(closedSet, node):
     for compNode in closedSet:
@@ -281,8 +282,10 @@ def isNodeInClosedSet(closedSet, node):
     
     return None
 
-def removeNodeFromSet(set, node):
-    [node for nodes in set if not node.compareTo(node[1])] 
+def removeNodeFromSet(set, index):
+    set.pop(index)
+
+    #[[n for n in nested [nodeP for nodes in set if not nodeP[1].compareTo(node)] 
 
 
 def performMove(node):
@@ -351,13 +354,15 @@ def parseNode(node):
     if (len (world1concat) == len (world2concat)):
 
         for i in range(0,worldLength):
-            if currentWorld[i] > parentWorld[i]:
-                dropString = "drop " + str(i)
-                list.append(dropString)
             if currentWorld[i] < parentWorld[i]:
                 pickString = "pick " + str(i)
-                list.append(pickString)
-
+                
+            if currentWorld[i] > parentWorld[i]:
+                dropString = "drop " + str(i)
+          
+        list.append(pickString)
+        list.append(dropString)
+            
 
         return (parentNode, list)
     elif (len (world1concat) > len (world2concat)):
@@ -460,7 +465,7 @@ if __name__ == '__main__':
     node8 = Node(node7, startWorld8, 0, 0, 0)
     node9 = Node(node8, startWorld9, 0, 0, 0)
 
-    print reconstructPath(node9, [])
+    #print reconstructPath(node9, [])
 
     print node9.world
     goal = ["onTop", "c", "a"]
