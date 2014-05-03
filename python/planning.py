@@ -460,6 +460,6 @@ if __name__ == '__main__':
     goal = ["onTop", "c", "a"]
     print reconstructPath(node9, [])
 
-    #startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-    #pickAndDrop = search(startWorld, goal)
-    #print pickAndDrop
+    startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+    pickAndDrop = search(startWorld, goal)
+    print pickAndDrop
