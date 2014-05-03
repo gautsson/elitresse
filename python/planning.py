@@ -362,11 +362,12 @@ def parseNode(node):
         for i in range(0,worldLength):
             if currentWorld[i] > parentWorld[i]:
                 dropString = "drop " + str(i)
+                list.append(dropString)
             if currentWorld[i] < parentWorld[i]:
                 pickString = "pick " + str(i)
+                list.append(pickString)
 
-        list.append(pickString)
-        list.append(dropString)
+
         return (parentNode, list)
     elif (len (world1concat) > len (world2concat)):
         # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
