@@ -322,11 +322,7 @@ def drop(world, stack, object):
     return world[stack].append(object)
 
 def heuristic_cost_estimate(world, goal):
-    goalList = goal.split(",")
-    relation = goalList[0]
-    objA = goalList[1] 
-    objB = goalList[2]
-
+    relation, objA, objB = goal	
     locA = getLocation(world, objA)
     locB = getLocation(world, objB)
     return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
@@ -401,10 +397,7 @@ def movementCost(fromNode, toNode):
 
 # Checks whether the goal has been satisfied or not
 def isGoal(world, goal):
-    goalList = goal.split(",")
-    relation = goalList[0]
-    sourceObject = goalList[1] 
-    targetObject = goalList[2]
+    relation, sourceObject, targetObject = goal
 
     sourceObjectLocation = getLocation(world, sourceObject)
     targetObjectLocation = getLocation(world, targetObject)
@@ -474,11 +467,6 @@ if __name__ == '__main__':
 
     #print reconstructPath(node9, [])
 
-    #print node9.world
-    exampleworld = [["e"],["g","l"],[],["k","m","f"],[]]
-    goal = ["onTop,e,g"]
-    #print reconstructPath(node9, [])
-
-    startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
-    pickAndDrop = search(startWorld, goal[0])
+    #startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+    pickAndDrop = search(startWorld, goal)
     print pickAndDrop

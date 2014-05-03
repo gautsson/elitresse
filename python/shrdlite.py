@@ -59,15 +59,17 @@ def parse(utterance):
 
 
 def interpret(tree, world, holding, objects):
-    return [True]
-    #return ["onTop,c,a"]
+    #return [True]
+    return ["onTop,e,f"]
 
 
 def solve(goal, world, holding, objects):
     col = list(map(bool, world)).index(True)
-    return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
-    return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
+    #return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
+    #return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
     #return ["pick 1", "drop 2"]
+    pickAndDrop = planning.search(world, goal)
+    return pickAndDrop
     #goal = ["onTop,c,a"]
     #return planning.performMove(goal, world)
     #return planning.test()
