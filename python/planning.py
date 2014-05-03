@@ -350,13 +350,20 @@ def parseNode(node):
         list.append(pickString)
         list.append(dropString)
         return (parentNode, list)
-    else:
+    elif (len (world1concat) > len (world2concat)):
         # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
         changedElement = (set(world1concat) - set(world2concat)).pop()
-        theStack = getObjectStack("f", parentWorld)
+        theStack = getObjectStack(changedElement, parentWorld)
         newCommand = "pick " + str(theStack)
         list.append(newCommand)
         return (parentNode, list)
+    else:
+    	# This loop gets run if the first command is a pick, i.e. if the arm was holding an object
+    	changedElement = (set(world2concat) - set(world1concat)).pop()
+    	theStack = getObjectStack(changedElement, parentWorld)
+    	newCommand = "drop " + str(theStack)
+    	list.append(newCommand)
+    	return (parentNode, list)
 
 def movementCost(fromNode, toNode):
     fromWorld = fromNode.world
@@ -462,20 +469,20 @@ if __name__ == '__main__':
  	# print performMove(world2)
  	# print getTopObject(world2, 5)
   
-	 # node1 = Node(None, startWorld1, 0, 0, 0)
-	 # node2 = Node(node1, startWorld2, 0, 0, 0)
-	 # node3 = Node(node2, startWorld3, 0, 0, 0)
-	 # node4 = Node(node3, startWorld4, 0, 0, 0)
-	 # node5 = Node(node4, startWorld5, 0, 0, 0)
-	 # node6 = Node(node5, startWorld6, 0, 0, 0)
-	 # node7 = Node(node6, startWorld7, 0, 0, 0)
-	 # node8 = Node(node7, startWorld8, 0, 0, 0)
-	 # node9 = Node(node8, startWorld9, 0, 0, 0)
+	 node1 = Node(None, startWorld1, 0, 0, 0)
+	 node2 = Node(node1, startWorld2, 0, 0, 0)
+	 node3 = Node(node2, startWorld3, 0, 0, 0)
+	 node4 = Node(node3, startWorld4, 0, 0, 0)
+	 node5 = Node(node4, startWorld5, 0, 0, 0)
+	 node6 = Node(node5, startWorld6, 0, 0, 0)
+	 node7 = Node(node6, startWorld7, 0, 0, 0)
+	 node8 = Node(node7, startWorld8, 0, 0, 0)
+	 node9 = Node(node8, startWorld9, 0, 0, 0)
 	  
 	 #node = Node(None, startWorld2, 0, 0, 0)
 	 #node2 = Node(node, startWorld, 4, 2, 6)
 	 #print parseNode(node2)
 	 print reconstructPath(node9, [])
 	 #print reconstructPath(node9, [])
-	 pickAndDrop = search(world, goal)
-	 print pickAndDrop
+	 #pickAndDrop = search(world, goal)
+	 #print pickAndDrop
