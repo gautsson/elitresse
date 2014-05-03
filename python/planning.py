@@ -2,7 +2,7 @@ from heapq import *
 from copy import deepcopy
 
 # Global variables which are temporarily here for testing
-startWorld = [["c","b"],["a" ,"m"],["g"]]
+#startWorld = [["a", "c","b"],["m"],["g"]]
 #CHANGE LIST INDEXING IN PERFORMMOVE
 startWorld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 startWorld2 = [["e"],["a"],["l"],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
@@ -12,7 +12,7 @@ startWorld5 = [[],["a"],["l"],[],["i","h","j"],["e"],[],["k","g","c","b"],["f"],
 startWorld6 = [[],["a"],["l"],[],["i","h"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
 startWorld7 = [["h"],["a"],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
 startWorld8 = [["h","a"],[],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
-startWorld9 = [["h","a"],[],["l"],[],["i"],[],["j"],["k","g","c","b"],["f"],["d","m"]]
+startWorld9 = [["h","a"],[],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
 
 world = [["c","b"],["a" ,"m"],["g"]]
 
@@ -51,6 +51,52 @@ class Node:
     def compareTo(self, node):
        return self.world == node.world 
 
+class Rules:
+
+    def __init__(self):
+        ruleList = list()
+            
+        ruleList.append(ballInBox())
+
+    def applyRules(self, object, stack):
+        if stackHeight(stack) == 0:
+            return True
+        else:
+            object = getObjectDescription(object)
+            stackObject = stack[stackHeight(stack)-1]
+
+
+    def ballInBox(self, object, stackObject):
+        if object["form"] == "ball" and not (stackObject["form"] == "box"):
+            return False
+        else:
+            return True
+
+#    def ballCannotSupport(self, object, stackObject):
+
+
+#    def smallObjectSupport(self, object, stackObject:
+
+#    def boxCannotContain(self, object, stackObject):
+
+
+#    def boxSupported(self, object, stackObject):
+
+#    def largeBoxSupported(self, object, stackObject):
+
+
+
+
+        # Constraints:
+# Balls must be in boxes or on the floor, otherwise they roll away
+# Balls cannot support anything
+# Small objects cannot support large objects
+# Boxes cannot contain pyramids or planks of the same size
+# Boxes can only be supported by tables or planks of the same size,
+# but large boxes can also be supported by large bricks.
+
+    
+
 #
 # Lots of helper functions here below:
 #
@@ -70,14 +116,14 @@ def getEmptyStacks(world):
 	return x
 
 # Gets the top objects on the stacks which are in the world
-def getTopObject(world):
-	balls = []
-	for object in world:
-		if object != []:
- 			balls.append(object[-1])
- 		else:
- 			balls.append([])
- 	return balls
+#def getTopObject(world):
+#	balls = []
+#	for object in world:
+#		if object != []:
+# 			balls.append(object[-1])
+# 		else:
+# 			balls.append([])
+# 	return balls
 
 # Gets an ordered list of all the objects in the world
 def getOrderedListOfObjects(world):
@@ -146,38 +192,6 @@ def getObjectStack(object, world):
 		else:
 			stack = stack+1
 
-# A function which does different things depending on which relation the source and target objects have
-# def performMove(goal, world):
-# 	#return["pick 1", "drop 2", "pick 3", "drop 2"]
-# 	goal = ["onTop,c,a"]
-# 	goalList = goal[0].split(",")
-# 
-# 	relation = goalList[0]
-# 	sourceObject = goalList[1]
-# 	targetObject = goalList[2]
-# 
-# 	sourceObjectStack = getObjectStack(sourceObject)
-# 	targetObjectStack = getObjectStack(targetObject)
-# 
-# 	if relation == "onTop":
-# 		if isTargetObjectOnTop(targetObject, world):
-# 			return ["pick " + str(sourceObjectStack)]
-# 		else:
-# 			return ["pick " + str(targetObjectStack)]
-# 
-# 	elif relation == "inside":
-# 		return "inside"
-# 	elif relation == "above":
-# 		return "dfsfd"
-# 	elif relation == "under":
-# 		return "under"
-# 	elif relation == "beside":
-# 		return "beside"
-# 	elif relation == "leftOf":
-# 		return "to the left"
-# 	elif relation == "rightOf":
-# 		return "to the right"
-
 # Checks whether the target object is on top of a stack or not
 def isTargetObjectOnTop(targetObject, world):
 	topList = getTopObject(world)
@@ -205,10 +219,7 @@ def checkStuff(object):
 #
 #
 #
-##
-
-def solve(world, goal):
-    relation, sourceObject, targetObject = goal
+#
 		
 def search(world, goal):
     closedSet = []
@@ -216,69 +227,75 @@ def search(world, goal):
 
     #heappush(openSet, (5, 'write code'))
 
-    g_score = 0
-    h_score = 0
-    f_score = 0
+    gScore = 0
+    hScore = 0
+    fScore = 0
+    
+    startNode = Node(None, world, gScore, hScore, fScore)
 
-    startNode = Node(None, world, g_score, h_score, f_score)
-
-    start = (0, startNode)
-    heappush(openSet, start)
-    print openSet
+    startTuple = (0, startNode)
+    heappush(openSet, startTuple)
 
     while openSet != []:
         currentNode = heappop(openSet)[1]
-        print "CURRENT: ", currentNode
 
         if (isGoal(currentNode.world, goal)):
-            return reconstruct_path(currentNode)
+            print "hello"
+            return reconstructPath(currentNode, list())
 
         closedSet.append(currentNode)
-        for neighbor in performMove(currentNode):
-            print neighbor.world
-        
 
         for neighbor in performMove(currentNode):
-            print "hej"
+           # print neighbor
             cost = currentNode.g + movementCost(currentNode, neighbor)		
 
             nodeInOpenSet = nodeInSet(openSet, neighbor)
 
             if (nodeInOpenSet != None and cost < nodeInOpenSet.g):
-                removeNodeFromSet(nodeInOpenSet)
+                removeNodeFromSet(openSet, nodeInOpenSet)
 
+            #print "OpenSet" 
+           # print openSet
             nodeInOpenSet = nodeInSet(openSet, neighbor)
+            #print nodeInOpenSet 
             nodeInClosedSet = nodeInSet(closedSet, neighbor)
-
-            if (nodeInOpenSet != None and nodeInClosedSet != None):
+           # print nodeInClosedSetp
+            if (nodeInOpenSet == None and nodeInClosedSet == None):
+               # print "hello2"
                 neighbor.g = cost
-                neighbor.h = heuristic_cost_estimate(neighbor, goal)
+                neighbor.h = heuristic_cost_estimate(neighbor.world, goal)
                 neighbor.f = neighbor.g + neighbor.h
 
                 neighbor.parent = currentNode
                 neighborTuple = (neighbor.f, neighbor)
                 heappush(openSet, neighborTuple)
+            #print openSet
 
                 
 def nodeInSet(set, node):
     index = 0
     for compNode in set:
-        if node.compareTo(compNode):
-            return compNode
+        if node.compareTo(compNode[1]):
+            return compNode[1]
     return None
 
+def nodeInClosedSet(set, node):
+    index = 0
+    for compNode in set:
+        if node.compareTo(compNode[1]):
+            return compNode[1]
+    return None
+    
 def removeNodeFromSet(set, node):
-    [nodes for nodes in set if not node.compareTo(nodes)] 
+    [node for nodes in set if not node[1].compareTo(nodes[1])] 
 
 
 def performMove(node):
     neighbors = list()    
-    counter = 0
 
     for pickStack in range (getWorldLength(startWorld)):		
         for dropStack in range (getWorldLength(startWorld)):
             neighborNode = deepcopy(node)
-            counter = counter + 1
             object = pick(neighborNode.world, pickStack)
 
             if (object == None):
@@ -287,7 +304,6 @@ def performMove(node):
             drop(neighborNode.world, dropStack, object)
             
             neighbors.append(neighborNode)
-    print counter
     return neighbors	
 
 def getTopObject(world, stack):
@@ -316,14 +332,11 @@ def heuristic_cost_estimate(world, goal):
 	return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
 def reconstructPath(node, commandString):
-  if node.parent.parent == None: # Base case
-    print 'hej'
-    parentNode, command = parseNode(node)
-    return command + commandString
-  else:
-    print 'hej2'
-    parentNode, command = parseNode(node)
-    return reconstructPath(parentNode, command + commandString)
+    if node.parent == None: # Base case
+        return commandString
+    else:
+        parentNode, command = parseNode(node)
+        return reconstructPath(parentNode, command + commandString)
     
 
 	
@@ -385,9 +398,8 @@ def movementCost(fromNode, toNode):
 # Boxes can only be supported by tables or planks of the same size,
 # but large boxes can also be supported by large bricks.
 
-def getPlausibleStacks(world, object):
-	stacks = getAllStacks(world)
-	objDescrip = getObjectDescription(object)
+
+
 	
 	
 	
@@ -457,7 +469,6 @@ if __name__ == '__main__':
 	#print getStackHeight(world2, 0)
 	#print heuristic_cost_estimate(startWorld, goal)
     
-  testNode = Node(None, startWorld1, 0, 0, 0)
  
   
   #print neighbors
@@ -465,19 +476,24 @@ if __name__ == '__main__':
  #print performMove(world2)
 	#print getTopObject(world2, 5)
   
-  #  node1 = Node(None, startWorld1, 0, 0, 0)
-  #  node2 = Node(node1, startWorld2, 0, 0, 0)
-  #  node3 = Node(node2, startWorld3, 0, 0, 0)
-  #  node4 = Node(node3, startWorld4, 0, 0, 0)
-  #  node5 = Node(node4, startWorld5, 0, 0, 0)
-  #  node6 = Node(node5, startWorld6, 0, 0, 0)
-  #  node7 = Node(node6, startWorld7, 0, 0, 0)
-  #  node8 = Node(node7, startWorld8, 0, 0, 0)
-  #  node9 = Node(node8, startWorld9, 0, 0, 0)
+    node1 = Node(None, startWorld1, 0, 0, 0)
+    node2 = Node(node1, startWorld2, 0, 0, 0)
+    node3 = Node(node2, startWorld3, 0, 0, 0)
+    node4 = Node(node3, startWorld4, 0, 0, 0)
+    node5 = Node(node4, startWorld5, 0, 0, 0)
+    node6 = Node(node5, startWorld6, 0, 0, 0)
+    node7 = Node(node6, startWorld7, 0, 0, 0)
+    node8 = Node(node7, startWorld8, 0, 0, 0)
+    node9 = Node(node8, startWorld9, 0, 0, 0)
   
   #node = Node(None, startWorld2, 0, 0, 0)
   #node2 = Node(node, startWorld, 4, 2, 6)
   #print parseNode(node2)
-  #print reconstructPath(node9, [])
-  pickAndDrop = search(world, goal)
-  print pickAndDrop
+    print reconstructPath(node9, [])
+
+    startWorld = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+    goal = ["onTop", "c", "a"]
+    
+
+    pickAndDrop = search(startWorld, goal)
+    print pickAndDrop
