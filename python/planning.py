@@ -2,6 +2,8 @@ from heapq import *
 from copy import deepcopy
 
 # Global variables which are temporarily here for testing
+startWorld = [["c","b"],["a" ,"m"],["g"]]
+#CHANGE LIST INDEXING IN PERFORMMOVE
 startWorld1 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 startWorld2 = [["e"],["a"],["l"],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 startWorld3 = [[],["a"],["l"],[],["i","h","j","e"],[],[],["k","g","c","b"],[],["d","m","f"]]
@@ -12,8 +14,9 @@ startWorld7 = [["h"],["a"],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["
 startWorld8 = [["h","a"],[],["l"],[],["i"],["e"],["j"],["k","g","c","b"],["f"],["d","m"]]
 startWorld9 = [["h","a"],[],["l"],[],["i"],[],["j"],["k","g","c","b"],["f"],["d","m"]]
 
+world = [["c","b"],["a" ,"m"],["g"]]
 
-world2 = [["e"],["l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f","a"]]
+world2 = [["e"],["m"],[]]
 world3 = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
 
 #worldIdList = [(world,0)]
@@ -45,8 +48,8 @@ class Node:
         self.h = h
         self.f = f
    
-    def compareTo(self, Node):
-       pass 
+    def compareTo(self, node):
+       return self.world == node.world 
 
 #
 # Lots of helper functions here below:
@@ -204,63 +207,84 @@ def checkStuff(object):
 #
 ##
 
-    
+def solve(world, goal):
+    relation, sourceObject, targetObject = goal
 		
 def search(world, goal):
-	closedSet = []
-	openSet = []
+    closedSet = []
+    openSet = []
 
-	heappush(openSet, (5, 'write code'))
+    #heappush(openSet, (5, 'write code'))
 
-	g_score = 0
-	h_score = 0
-	f_score = 0
+    g_score = 0
+    h_score = 0
+    f_score = 0
 
-	startNode = Node(None, world, g_score, h_score, f_score)
+    startNode = Node(None, world, g_score, h_score, f_score)
 
-	start = (0, startNode)
-	heappush(openSet, start)
+    start = (0, startNode)
+    heappush(openSet, start)
+    print openSet
 
-	while openSet != []:
-		currentNode = heappop(openSet)
-		print "CURRENT: ", currentNode
+    while openSet != []:
+        currentNode = heappop(openSet)[1]
+        print "CURRENT: ", currentNode
 
-		if (isGoal(current, goal)):
-			return reconstruct_path(currentNode)
+        if (isGoal(currentNode.world, goal)):
+            return reconstruct_path(currentNode)
 
-		closedSet.append(currentNode)
+        closedSet.append(currentNode)
+        for neighbor in performMove(currentNode):
+            print neighbor.world
+            print "hej"
+            cost = currentNode.g + movementCost(currentNode, neighbor)		
 
-# 		for neighbor in performMove(currentNode):
-            
-#             if nodeInOpen(neighbor) and 		
-#             neighbor.g = currentNode.g + movementCost(currentNode, neighbor)
-#             neighbor.h = heuristic_cost_estimate(neighbor, goal)
-#             neighbor.f = g_score + h_score
-			
-#             	cost = currentNode.g + movementCost(currentNode, neighbor)		
+            nodeInOpenSet = nodeInSet(openSet, neighbor)
 
-# 	# 		if ((neighbor not in openSet) or (temporaryCost < g_score[neighbor]):
-# 	# 			cameFrom[neighbor] = current
-# 	# 			g_score[neighbor]  = temporaryCost
-# 	# 			f_score[neighbor]  = g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+            if (nodeInOpenSet != None and cost < nodeInOpenSet.g):
+                removeNodeFromSet(nodeInOpenSet)
 
+            nodeInOpenSet = nodeInSet(openSet, neighbor)
+            nodeInClosedSet = nodeInSet(closedSet, neighbor)
 
-	# 			if (neighbor not in openSet):
-	# 				openSet.put(neighbor)
+            if (nodeInOpenSet != None and nodeInClosedSet != None):
+                neighbor.g = cost
+                neighbor.h = heuristic_cost_estimate(neighbor, goal)
+                neighbor.f = neighbor.g + neighbor.h
+
+                neighbor.parent = currentNode
+                neighborTuple = (neighbor.f, neighbor)
+                heappush(openSet, neighborTuple)
+
+                
+def nodeInSet(set, node):
+    index = 0
+    for compNode in set:
+        if node.compareTo(compNode):
+            return compNode
+    return None
+
+def removeNodeFromSet(set, node):
+    [nodes for nodes in set if not node.compareTo(nodes)] 
 
 
 def performMove(node):
     neighbors = list()    
+    counter = 0
 
     for pickStack in range (getWorldLength(startWorld)):		
         for dropStack in range (getWorldLength(startWorld)):
             neighborNode = deepcopy(node)
+            counter = counter + 1
             object = pick(neighborNode.world, pickStack)
 
             if (object == None):
                 continue
 
-            neighbors.append(drop(neighborNode.world, stack, object))
+            drop(neighborNode.world, dropStack, object)
+            
+            neighbors.append(neighborNode)
+    print counter
     return neighbors	
 
 def getTopObject(world, stack):
@@ -271,14 +295,14 @@ def getTopObject(world, stack):
 	else:
 		return world[stack][stackHeight-1]
 
-def pick(world, column):
-	if (getStackHeight(world, column) > 0):
-		return world[column].pop()
+def pick(world, stack):
+	if (getStackHeight(world, stack) > 0):
+		return world[stack].pop()
 	else:
 		return None
 	
-def drop(world, column, object):
-	return world[column].append(object)
+def drop(world, stack, object):
+	return world[stack].append(object)
 
 def heuristic_cost_estimate(world, goal):
 	relation, objA, objB = goal
@@ -334,18 +358,20 @@ def parseNode(node):
         list.append(newCommand)
         return (parentNode, list)
 
-def movementCost(fromWorld, toWorld):
-	start = -1
-	end = -1
-	
-	for column in range(getWorldLength(startWorld)):
-		if (len(fromWorld[column]) != len(toWorld[column]) and start == -1):
-			start = column
-		elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
-			end = column
-			
-	return abs(end - start)	
-	
+def movementCost(fromNode, toNode):
+    fromWorld = fromNode.world
+    toWorld = toNode.world
+    start = -1
+    end = -1
+
+    for column in range(getWorldLength(startWorld)):
+        if (len(fromWorld[column]) != len(toWorld[column]) and start == -1):
+            start = column
+        elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
+            end = column
+
+    return abs(end - start)	
+
 # Constraints:
 # Balls must be in boxes or on the floor, otherwise they roll away
 # Balls cannot support anything
@@ -426,26 +452,30 @@ if __name__ == '__main__':
 	# print getStackHeight(world2, 0)
 	# print heuristic_cost_estimate(startWorld, goal)
     
- #  testNode = Node(None, startWorld, 0, 0, 0)
+ 	# testNode = Node(None, startWorld, 0, 0, 0)
   
- #  neighbors = performMove(testNode)
-  
- #  print neighbors
+ 	# neighbors = performMove(testNode)
+ 	# testNode = Node(None, startWorld1, 0, 0, 0)
+
+ 	# print neighbors
 	
- #    print performMove(world2)
-	# print getTopObject(world2, 5)
+ 	# print performMove(world2)
+ 	# print getTopObject(world2, 5)
   
-    node1 = Node(None, startWorld1, 0, 0, 0)
-    node2 = Node(node1, startWorld2, 0, 0, 0)
-    node3 = Node(node2, startWorld3, 0, 0, 0)
-    node4 = Node(node3, startWorld4, 0, 0, 0)
-    node5 = Node(node4, startWorld5, 0, 0, 0)
-    node6 = Node(node5, startWorld6, 0, 0, 0)
-    node7 = Node(node6, startWorld7, 0, 0, 0)
-    node8 = Node(node7, startWorld8, 0, 0, 0)
-    node9 = Node(node8, startWorld9, 0, 0, 0)
-  
-  #node = Node(None, startWorld2, 0, 0, 0)
-  #node2 = Node(node, startWorld, 4, 2, 6)
-  #print parseNode(node2)
-    print reconstructPath(node9, [])
+	 # node1 = Node(None, startWorld1, 0, 0, 0)
+	 # node2 = Node(node1, startWorld2, 0, 0, 0)
+	 # node3 = Node(node2, startWorld3, 0, 0, 0)
+	 # node4 = Node(node3, startWorld4, 0, 0, 0)
+	 # node5 = Node(node4, startWorld5, 0, 0, 0)
+	 # node6 = Node(node5, startWorld6, 0, 0, 0)
+	 # node7 = Node(node6, startWorld7, 0, 0, 0)
+	 # node8 = Node(node7, startWorld8, 0, 0, 0)
+	 # node9 = Node(node8, startWorld9, 0, 0, 0)
+	  
+	 #node = Node(None, startWorld2, 0, 0, 0)
+	 #node2 = Node(node, startWorld, 4, 2, 6)
+	 #print parseNode(node2)
+	 print reconstructPath(node9, [])
+	 #print reconstructPath(node9, [])
+	 pickAndDrop = search(world, goal)
+	 print pickAndDrop
