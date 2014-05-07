@@ -49,33 +49,70 @@ class AmbiguityResolver:
         parsedList[::-1]
             ## Save the first object in the reversed list, which is the last object of reference for the main object
         relObj = parsedList.pop()
-        print relObj
-        print len(parsedList)
         while len(parsedList) > 1:
             if parsedList[len(parsedList)-1] in quantifiers:
                 #manage the ambiguity later using the quantifier
                 quantifier = parsedList.pop()
-                print "quantifiers"
             relation = parsedList.pop()
-            print "relation"
             mainObj = parsedList.pop()
             relObj = self.filterElements(mainObj, relation, relObj)
+        if len(relObj) > 1 and not relObj == 'floor' :
+            print "end of resolve"
+            print "relobj",  relObj
+            objects = self.getObjectAttributes(relObj)
+            result = self.getObjectDifferences(objects)
+            print "result is ", result
+
         return relObj
+        
+    def cleanCandidates(self, objCandidates, answer, difference, value):
+        newCandidates = []
+        print "value is",value
+        if answer == 'Y':
+            for obj in objCandidates:
+                if obj[difference] == value:
+                    newCandidates.append(obj)
+        else:
+            for obj in objCandidates:
+                if not obj[difference] == value:
+                    newCandidates.append(obj)
+        return newCandidates
+    
+    def askQuestion(self, objDifference, objCandidates):
+        while True:
+            value = objCandidates[0][objDifference]
+            answer = raw_input("Did you mean the " + value +" "+ objCandidates[0]['form'] + "? (Y/N)")
+            if answer.upper() == 'Y' or answer.upper() == 'N':
+                break
+        objCandidates = self.cleanCandidates(objCandidates, answer, objDifference, value)
+        return objCandidates
+        #if len(objCandidates) == 1:
+         #   return objCandidates
+        #else:
+         #   self.getObjectDifferences(objCandidates)
+        
+        
+        
     def getObjectAttributes(self, objects):
-        return objects
+        objList = []
+        for obj in objects:
+            object = self.objectsInWorld[self.worldPopulation[obj[0]][obj[1]]]
+            objList.append(object)
+        return objList
     
     def getObjectDifferences(self, objects):
-        objects = getObjectAttributes(objects)
-        attribute = 0
-        while attribute < 3:
+        attributes = ['color', 'form', 'size']
+        for attribute in attributes:
             attrList = []
             for obj in objects:
-                attrList.append(obj(attribute));
+                attrList.append(obj[attribute]);
+            print attrList
             attrList = set(attrList);
+            print attrList
             if len(attrList) > 1:
-                return attribute
-            else:
-                attribute = attribute + 1
+                print "result in differences", objects
+                return self.getObjectDifferences(self.askQuestion(attribute, objects))
+        return objects
                 
         
         
@@ -203,21 +240,22 @@ class AmbiguityResolver:
             else:
                 targetList = self.parse(bigList)
         action = targetList.pop(0)
-        print "Source"
-        print sourceList
+        #print "Source"
+        #print sourceList
         sourceResult = self.resolve(sourceList)
-        print "source result"
-        print sourceResult
-        print targetList
-        print "target result"
+        #print "source result"
+        #print sourceResult
+        #print targetList
+        #print "target result"
         targResult = self.resolve(targetList)
-        print targResult
+        #print targResult
           ## If the target is the floor, find all the places available on the floor
         if targResult == "floor":
             targResult = self.findPlacesOnTheFloor()
         pddl = self.convertToPDDL(sourceResult, action, targResult)
-        print "PDDL = "
-        print pddl
+        #print "PDDL = "
+        #print pddl
+        #print self.getObjectDifferences([(1,1), (7,0), (9,1)])
         
         
     def parse(self, inputList):
@@ -356,7 +394,7 @@ if __name__ == '__main__':
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
-    ambMediumSolver.handleInput([[[['the', ['plank', '', '']], [['ontop', [['the', ['table', '', '']], [['rightof', ['the', ['box', '', 'red']]]]]]]], ['ontop', [['the', ['ball', '', 'white']], [['ontop', 'floor']]]]]])
+    ambMediumSolver.handleInput([[['the', ['box', '', '']], ['ontop', 'floor']]])
     #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['ontop', 'floor']]])
 
     '''f = ambSmallSolver.getObjectCoordinates("f")
@@ -378,3 +416,4 @@ if __name__ == '__main__':
     print ambSmallSolver.beside(l, e)
     print ambSmallSolver.beside(m, l)
     '''
+
