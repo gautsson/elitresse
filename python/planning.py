@@ -41,8 +41,8 @@ class Node:
 #
 # Rules class which holds the constraints
 #
-
-# Constraints:
+# The constraints are:
+#
 # Balls must be in boxes or on the floor, otherwise they roll away
 # Balls cannot support anything
 # Small objects cannot support large objects
@@ -65,11 +65,50 @@ class Rules:
             for rule in self.ruleList:
                 if rule(object, stackObject) == False:
                     return False
+
             return True
+
+
 
     def ballInBox(self, object, stackObject): 
         if object["form"] == "ball":
             if stackObject["form"] == "box":
+                return True
+            else:
+                return False
+
+    def notSupportedByBall(self, object, stackObject):
+        return not stackObject["form"] == "ball"
+
+    def smallBeneathLarge(self, object, stackObject):
+        if stackObject["size"] == "small" and object["size"] == "large":
+            return False
+        else:
+            return True
+
+    def containedInBox(self, object, stackObject):
+        #Boxes cannot contain pyramids or planks of the same size
+        #ASK THE SUPERVISOR ABOUT THIS. Should small boxes be able to contain large pyramids or large planks ?!? Because according
+        #to the specification, they should!
+        if stackObject["form"] == "box":
+            if object["form"] == "pyramid" and object["size"] == stackObject["size"]:
+                return False
+            elif object["form"] == "plank" and object["size"] == stackObject["size"]:
+                return False
+            else:
+                return True
+        else:
+            return True
+
+    def boxIsSupported(self, object, stackObject):
+    # Boxes can only be supported by tables or planks of the same size,
+    # but large boxes can also be supported by large bricks.
+        if object["form"] == "box":
+            if stackObject["form"] == "table" and object["size"] == stackObject["size"]:
+                return True
+            elif stackObject["form"] == "plank" and object["size"] == stackObject["size"]:
+                return True
+            elif object["size"] == "large" and stackObject["form"] == "brick" and stackObject["size"] == "large":
                 return True
             else:
                 return False
@@ -90,6 +129,17 @@ def getObjectStack(object, world):
 #
 
 def search(world, goal):
+    goalList = goal.split(",")
+
+    # if len(goalList) == 2:
+    #     relation = goalList[0]
+
+    #     if relation == "take":
+    #         pass
+    #     elif relation == "drop":
+    #         pass
+
+    # else:
     closedSet = []
     openSet = []
 
@@ -192,16 +242,19 @@ def pick(world, stack):
 def drop(world, stack, object):
     return world[stack].append(object)
 
+# FIX HEURISTIC FOR TAKE AND DROP
 def heuristic_cost_estimate(world, goal):
     goalList = goal.split(",")
     relation = goalList[0]
-    objA = goalList[1] 
-    objB = goalList[2]
-
+    objA = goalList[1]
     locA = getLocation(world, objA)
-    locB = getLocation(world, objB)
 
-    return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
+    if (len(goalList) == 2):
+        return 4
+    else:
+        objB = goalList[2]
+        locB = getLocation(world, objB)
+        return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
 def reconstructPath(node, commandString):
     if node.parent == None: # Base case
@@ -217,12 +270,12 @@ def parseNode(node):
     worldLength = len (parentWorld)
     list = []
 
-    world1concat = [value for sublist in parentWorld for value in sublist]
-    world2concat = [value for sublist in currentWorld for value in sublist]
+    parentWorldConcat = [value for sublist in parentWorld for value in sublist]
+    currentWorldConcat = [value for sublist in currentWorld for value in sublist]
     pickString = ""
     dropString = ""
 
-    if (len (world1concat) == len (world2concat)):
+    if (len (parentWorldConcat) == len (currentWorldConcat)):
 
         for i in range(0,worldLength):
             if currentWorld[i] < parentWorld[i]:
@@ -232,19 +285,19 @@ def parseNode(node):
                 dropString = "drop " + str(i)
           
         list.append(pickString)
-        list.append(dropString)
-            
+        list.append(dropString) 
         return (parentNode, list)
-    elif (len (world1concat) > len (world2concat)):
+
+    elif (len (parentWorldConcat) > len (currentWorldConcat)):
         # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
-        changedElement = (set(world1concat) - set(world2concat)).pop()
+        changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
         theStack = getObjectStack(changedElement, parentWorld)
         newCommand = "pick " + str(theStack)
         list.append(newCommand)
         return (parentNode, list)
     else:
         # This loop gets run if the first command is a pick, i.e. if the arm was holding an object
-        changedElement = (set(world2concat) - set(world1concat)).pop()
+        changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
         theStack = getObjectStack(changedElement, currentWorld)
         newCommand = "drop " + str(theStack)
         list.append(newCommand)
@@ -337,7 +390,6 @@ def getLocation(world, object):
 
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
-
    startWorld = [["e","n","h"],["d","m","g"],[],[]]
    goal = ["onTop,e,d"]
    pickAndDrop = search(startWorld, goal[0])
@@ -350,3 +402,16 @@ if __name__ == '__main__':
 
 #   print rules.applyRules(object, stack)
 
+    #startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
+    #startWorld = [["e"],["g","l"],[],["k","m","f"],[]]
+    #goal = "drop,h"
+    #goal = ["take,e"]
+    #pickAndDrop = search(startWorld, goal[0])
+    #print pickAndDrop
+    #test = isGoal(startWorld,goal)
+    #print test
+
+    stack = ["a"]
+    object = "k"
+    rules = Rules()
+    print rules.applyRules(object, stack)
