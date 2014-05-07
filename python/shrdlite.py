@@ -60,7 +60,7 @@ def parse(utterance):
 
 def interpret(tree, world, holding, objects):
     #return [True]
-    return ["onTop,e,f"]
+    return ["beside,e,f"]
 
 def solve(goal, world, holding, objects):
     col = list(map(bool, world)).index(True)

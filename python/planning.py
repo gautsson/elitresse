@@ -6,7 +6,7 @@ from copy import deepcopy
 #
 
 startWorld = [["e"],["a","l"],[],["c","d","f"]]
-goal = ["onTop", "c", "a"]
+# goal = ["onTop", "c", "a"]
 objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
     "b": { "form":"brick",   "size":"small",  "color":"white" },
@@ -68,8 +68,6 @@ class Rules:
 
             return True
 
-
-
     def ballInBox(self, object, stackObject): 
         if object["form"] == "ball":
             if stackObject["form"] == "box":
@@ -78,40 +76,42 @@ class Rules:
                 return False
 
     def notSupportedByBall(self, object, stackObject):
-        return not stackObject["form"] == "ball"
+        return True
+        # return not stackObject["form"] == "ball"
 
     def smallBeneathLarge(self, object, stackObject):
-        if stackObject["size"] == "small" and object["size"] == "large":
-            return False
-        else:
-            return True
+        return True
+        # if stackObject["size"] == "small" and object["size"] == "large":
+        #     return False
+        # else:
+        #     return True
 
     def containedInBox(self, object, stackObject):
+        return True
         #Boxes cannot contain pyramids or planks of the same size
-        #ASK THE SUPERVISOR ABOUT THIS. Should small boxes be able to contain large pyramids or large planks ?!? Because according
-        #to the specification, they should!
-        if stackObject["form"] == "box":
-            if object["form"] == "pyramid" and object["size"] == stackObject["size"]:
-                return False
-            elif object["form"] == "plank" and object["size"] == stackObject["size"]:
-                return False
-            else:
-                return True
-        else:
-            return True
+        # if stackObject["form"] == "box":
+        #     if object["form"] == "pyramid" and object["size"] == stackObject["size"]:
+        #         return False
+        #     elif object["form"] == "plank" and object["size"] == stackObject["size"]:
+        #         return False
+        #     else:
+        #         return True
+        # else:
+        #     return True
 
     def boxIsSupported(self, object, stackObject):
+        return True
     # Boxes can only be supported by tables or planks of the same size,
     # but large boxes can also be supported by large bricks.
-        if object["form"] == "box":
-            if stackObject["form"] == "table" and object["size"] == stackObject["size"]:
-                return True
-            elif stackObject["form"] == "plank" and object["size"] == stackObject["size"]:
-                return True
-            elif object["size"] == "large" and stackObject["form"] == "brick" and stackObject["size"] == "large":
-                return True
-            else:
-                return False
+        # if object["form"] == "box":
+        #     if stackObject["form"] == "table" and object["size"] == stackObject["size"]:
+        #         return True
+        #     elif stackObject["form"] == "plank" and object["size"] == stackObject["size"]:
+        #         return True
+        #     elif object["size"] == "large" and stackObject["form"] == "brick" and stackObject["size"] == "large":
+        #         return True
+        #     else:
+        #         return False
 
 # ----------------------------------------------------------
 
@@ -140,6 +140,7 @@ def search(world, goal):
     #         pass
 
     # else:
+
     closedSet = []
     openSet = []
 
@@ -207,30 +208,19 @@ def removeNodeFromSet(set, index):
 # 1 correponds to do a pick command
 # 2 corresponds to do a drop command
 
-def performMove(node, command):
+def performMove(node):
     neighbors = list()
-    
+    for pickStack in range (len(startWorld)):        
+        for dropStack in range (len(startWorld)):
+            neighborNode = deepcopy(node)
+            object = pick(neighborNode.world, pickStack)
 
-    if (command == 0):
-        for pickStack in range (len(startWorld)):        
-            for dropStack in range (len(startWorld)):
-                neighborNode = deepcopy(node)
-                object = pick(neighborNode.world, pickStack)
+            if (object == None):
+                continue
 
-                if (object == None):
-                    continue
-
-                drop(neighborNode.world, dropStack, object)
-            
-                neighbors.append(neighborNode)
-    
-    elif (command == 1):
-        for dropStack in rage (len(startWorld)):
-
-    
-    elif (command == 2):
-
-    
+            drop(neighborNode.world, dropStack, object)
+        
+            neighbors.append(neighborNode)
     return neighbors    
 
 def pick(world, stack):
@@ -324,7 +314,7 @@ def isGoal(world, goal):
     relation = goalList[0]
     sourceObject = goalList[1]
     sourceObjectLocation = getLocation(world, sourceObject) 
-    
+
     # For the case when the arm picks something up. Becomes true if the arm is holding the source object, i.e. if it doesn't exist in the world
     if (len(goalList) == 2):
         if relation == "take":
@@ -342,6 +332,10 @@ def isGoal(world, goal):
             else:
                 return False
         elif relation == "above":
+            print sourceObject
+            print targetObject
+            print sourceObjectLocation[0]
+            print targetObjectLocation[0]
             if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]:
                 return True
             else:
@@ -390,28 +384,16 @@ def getLocation(world, object):
 
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
-   startWorld = [["e","n","h"],["d","m","g"],[],[]]
-   goal = ["onTop,e,d"]
-   pickAndDrop = search(startWorld, goal[0])
-   print pickAndDrop
-
-#   stack = ["g"]
-#   object = "l"
-
-#   rules = Rules()
-
-#   print rules.applyRules(object, stack)
-
-    #startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
-    startWorld = [["e"],["g","l"],[],["k","m","f"],[]]
-    #goal = "drop,h"
-    goal = ["take,e"]
-    pickAndDrop = search(startWorld, goal[0])
-    print pickAndDrop
-    #test = isGoal(startWorld,goal)
-    #print test
-
-    stack = ["a"]
-    object = "k"
+    stack = ["l"]
+    object = "e"
     rules = Rules()
     print rules.applyRules(object, stack)
+    # pickAndDrop = search(startWorld, goal[0])
+    # print pickAndDrop
+
+    medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
+    easy = [["e"],["g","l"],[],["k","m","f"],[]]
+    goal = "above,e,j"  
+
+    #test = isGoal(medium,goal)
+   #print test
