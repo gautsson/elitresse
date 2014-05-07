@@ -57,17 +57,20 @@ class AmbiguityResolver:
             mainObj = parsedList.pop()
             relObj = self.filterElements(mainObj, relation, relObj)
         if len(relObj) > 1 and not relObj == 'floor' :
-            print "end of resolve"
-            print "relobj",  relObj
-            objects = self.getObjectAttributes(relObj)
-            result = self.getObjectDifferences(objects)
-            print "result is ", result
-
+            objectAttributes = self.getObjectAttributes(relObj)
+            unformattedResult = self.getObjectDifferences(objectAttributes)
+            print "result from getobjectdifferences ", unformattedResult
+            for item in unformattedResult:
+                result = self.getMatchingObjects(item)
+                print "this should be coords of the resulting object(s)",result
+                #print len(result)
+            if len(result) > 1:
+                pass
+                #OHSHIT WE HAVE TO ASK OTHER KINDS OF QUESTIONS
         return relObj
         
     def cleanCandidates(self, objCandidates, answer, difference, value):
         newCandidates = []
-        print "value is",value
         if answer == 'Y':
             for obj in objCandidates:
                 if obj[difference] == value:
@@ -81,8 +84,8 @@ class AmbiguityResolver:
     def askQuestion(self, objDifference, objCandidates):
         while True:
             value = objCandidates[0][objDifference]
-            answer = raw_input("Did you mean the " + value +" "+ objCandidates[0]['form'] + "? (Y/N)")
-            if answer.upper() == 'Y' or answer.upper() == 'N':
+            answer = raw_input("Did you mean the " + value +" "+ objCandidates[0][0] + "? (Y/N)").upper()
+            if answer == 'Y' or answer == 'N':
                 break
         objCandidates = self.cleanCandidates(objCandidates, answer, objDifference, value)
         return objCandidates
@@ -90,32 +93,37 @@ class AmbiguityResolver:
          #   return objCandidates
         #else:
          #   self.getObjectDifferences(objCandidates)
-        
-        
-        
+    
     def getObjectAttributes(self, objects):
         objList = []
+        oneObject = []
         for obj in objects:
-            object = self.objectsInWorld[self.worldPopulation[obj[0]][obj[1]]]
-            objList.append(object)
+            object = self.worldPopulation[obj[0]][obj[1]]
+            attr = self.objectsInWorld[object]['form']
+            oneObject.append(attr)
+            object = self.worldPopulation[obj[0]][obj[1]]
+            attr = self.objectsInWorld[object]['size']
+            oneObject.append(attr)
+            object = self.worldPopulation[obj[0]][obj[1]]
+            attr = self.objectsInWorld[object]['color']
+            oneObject.append(attr)
+            objList.append(list(oneObject))
+            del oneObject[:]
         return objList
     
     def getObjectDifferences(self, objects):
-        attributes = ['color', 'form', 'size']
-        for attribute in attributes:
+        attributes = ['form', 'size', 'color']
+        i = 0
+        while i < 3:
             attrList = []
             for obj in objects:
-                attrList.append(obj[attribute]);
-            print attrList
+                attrList.append(obj[i]);
             attrList = set(attrList);
-            print attrList
             if len(attrList) > 1:
                 print "result in differences", objects
-                return self.getObjectDifferences(self.askQuestion(attribute, objects))
+                return self.getObjectDifferences(self.askQuestion(i, objects))
+            i = i + 1
         return objects
-                
-        
-        
         
     def onTop(self, topObject, botObject): 
         ''' Returns true if a given object is on top of another given object.
@@ -394,7 +402,7 @@ if __name__ == '__main__':
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
-    ambMediumSolver.handleInput([[['the', ['box', '', '']], ['ontop', 'floor']]])
+    ambMediumSolver.handleInput([[['any', ['ball', '', '']], ['inside', ['any', ['box', 'large', '']]]]])
     #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['ontop', 'floor']]])
 
     '''f = ambSmallSolver.getObjectCoordinates("f")
