@@ -27,8 +27,6 @@ objects = {
 #
 
 class Node:
-    # parent, world, g, h, f
-    
     def __init__(self, parent, world, g, h, f):
         self.parent = parent
         self.world = world
@@ -53,37 +51,28 @@ class Node:
 # but large boxes can also be supported by large bricks.
 
 class Rules:
-
     def __init__(self):
-        ruleList = list()
-            
-        ruleList.append(ballInBox())
+        self.ruleList = [self.ballInBox, self.notSupportedByBall, self.smallBeneathLarge,
+                self.containedInBox, self.boxIsSupported]
 
     def applyRules(self, object, stack):
-        if stackHeight(stack) == 0:
+        print object
+        if len(stack) == 0:
             return True
         else:
             object = getObjectDescription(object)
-            stackObject = stack[stackHeight(stack)-1]
-
-
-    def ballInBox(self, object, stackObject):
-        if object["form"] == "ball" and not (stackObject["form"] == "box"):
-            return False
-        else:
+            stackObject = getObjectDescription(stack[-1])
+            for rule in self.ruleList:
+                if rule(object, stackObject) == False:
+                    return False
             return True
 
-# To Do:
-
-#    def ballCannotSupport(self, object, stackObject):
-
-#    def smallObjectSupport(self, object, stackObject:
-
-#    def boxCannotContain(self, object, stackObject):
-
-#    def boxSupported(self, object, stackObject):
-
-#    def largeBoxSupported(self, object, stackObject):
+    def ballInBox(self, object, stackObject): 
+        if object["form"] == "ball":
+            if stackObject["form"] == "box":
+                return True
+            else:
+                return False
 
 # ----------------------------------------------------------
 
@@ -103,8 +92,6 @@ def getObjectStack(object, world):
 def search(world, goal):
     closedSet = []
     openSet = []
-
-    #heappush(openSet, (5, 'write code'))
 
     gScore = 0
     hScore = 0
@@ -165,20 +152,35 @@ def isNodeInClosedSet(closedSet, node):
 def removeNodeFromSet(set, index):
     set.pop(index)
 
-def performMove(node):
-    neighbors = list()    
+#A command is passed to performMove, where 
+# 0 corresponds to do a pick and a drop
+# 1 correponds to do a pick command
+# 2 corresponds to do a drop command
 
-    for pickStack in range (getWorldLength(startWorld)):        
-        for dropStack in range (getWorldLength(startWorld)):
-            neighborNode = deepcopy(node)
-            object = pick(neighborNode.world, pickStack)
+def performMove(node, command):
+    neighbors = list()
+    
 
-            if (object == None):
-                continue
+    if (command == 0):
+        for pickStack in range (len(startWorld)):        
+            for dropStack in range (len(startWorld)):
+                neighborNode = deepcopy(node)
+                object = pick(neighborNode.world, pickStack)
 
-            drop(neighborNode.world, dropStack, object)
+                if (object == None):
+                    continue
+
+                drop(neighborNode.world, dropStack, object)
             
-            neighbors.append(neighborNode)
+                neighbors.append(neighborNode)
+    
+    elif (command == 1):
+        for dropStack in rage (len(startWorld)):
+
+    
+    elif (command == 2):
+
+    
     return neighbors    
 
 def pick(world, stack):
@@ -198,6 +200,7 @@ def heuristic_cost_estimate(world, goal):
 
     locA = getLocation(world, objA)
     locB = getLocation(world, objB)
+
     return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
 
 def reconstructPath(node, commandString):
@@ -266,42 +269,50 @@ def movementCost(fromNode, toNode):
 def isGoal(world, goal):
     goalList = goal.split(",")
     relation = goalList[0]
-    sourceObject = goalList[1] 
-    targetObject = goalList[2]
+    sourceObject = goalList[1]
+    sourceObjectLocation = getLocation(world, sourceObject) 
+    
+    # For the case when the arm picks something up. Becomes true if the arm is holding the source object, i.e. if it doesn't exist in the world
+    if (len(goalList) == 2):
+        if relation == "take":
+            return not sourceObjectLocation
+        elif relation == "drop":
+            return not not sourceObjectLocation
 
-    sourceObjectLocation = getLocation(world, sourceObject)
-    targetObjectLocation = getLocation(world, targetObject)
+    else:
+        targetObject = goalList[2]
+        targetObjectLocation = getLocation(world, targetObject)
 
-    if relation == "onTop" or relation == "inside":
-        if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1:
-            return True
-        else:
-            return False
-    elif relation == "above":
-        if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]:
-            return True
-        else:
-            return False
-    elif relation == "under":
-        if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]:
-            return True
-        else:
-            return False
-    elif relation == "beside":
-        if sourceObjectLocation[0] == targetObjectLocation[0] + 1 or sourceObjectLocation[0] == targetObjectLocation[0] - 1:
-            return True
-        else:
-            return False
-    elif relation == "leftOf":
-        if sourceObjectLocation[0] < targetObjectLocation[0]:
-            return True
-        else:
-            return False
-    elif relation == "rightOf":
-        if sourceObjectLocation[0] > targetObjectLocation[0]:
-            return True
-        else:
-            return False
+        if relation == "onTop" or relation == "inside":
+            if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1:
+                return True
+            else:
+                return False
+        elif relation == "above":
+            if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]:
+                return True
+            else:
+                return False
+        elif relation == "under":
+            if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]:
+                return True
+            else:
+                return False
+        elif relation == "beside":
+            if sourceObjectLocation[0] == targetObjectLocation[0] + 1 or sourceObjectLocation[0] == targetObjectLocation[0] - 1:
+                return True
+            else:
+                return False
+        elif relation == "leftOf":
+            if sourceObjectLocation[0] < targetObjectLocation[0]:
+                return True
+            else:
+                return False
+        elif relation == "rightOf":
+            if sourceObjectLocation[0] > targetObjectLocation[0]:
+                return True
+            else:
+                return False
 
 
 # Utility functions, remove these functions
@@ -327,7 +338,15 @@ def getLocation(world, object):
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
 
-    startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
-    goal = ["onTop,e,g"]
-    pickAndDrop = search(startWorld, goal[0])
-    print pickAndDrop
+   startWorld = [["e","n","h"],["d","m","g"],[],[]]
+   goal = ["onTop,e,d"]
+   pickAndDrop = search(startWorld, goal[0])
+   print pickAndDrop
+
+#   stack = ["g"]
+#   object = "l"
+
+#   rules = Rules()
+
+#   print rules.applyRules(object, stack)
+
