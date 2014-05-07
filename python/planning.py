@@ -27,8 +27,6 @@ objects = {
 #
 
 class Node:
-    # parent, world, g, h, f
-    
     def __init__(self, parent, world, g, h, f):
         self.parent = parent
         self.world = world
@@ -67,7 +65,10 @@ class Rules:
             for rule in self.ruleList:
                 if rule(object, stackObject) == False:
                     return False
+
             return True
+
+
 
     def ballInBox(self, object, stackObject): 
         if object["form"] == "ball":
@@ -78,7 +79,7 @@ class Rules:
 
     def notSupportedByBall(self, object, stackObject):
         return not stackObject["form"] == "ball"
-        return True
+
     def smallBeneathLarge(self, object, stackObject):
         if stackObject["size"] == "small" and object["size"] == "large":
             return False
@@ -142,8 +143,6 @@ def search(world, goal):
     closedSet = []
     openSet = []
 
-    #heappush(openSet, (5, 'write code'))
-
     gScore = 0
     hScore = 0
     fScore = 0
@@ -203,20 +202,35 @@ def isNodeInClosedSet(closedSet, node):
 def removeNodeFromSet(set, index):
     set.pop(index)
 
-def performMove(node):
-    neighbors = list()    
+#A command is passed to performMove, where 
+# 0 corresponds to do a pick and a drop
+# 1 correponds to do a pick command
+# 2 corresponds to do a drop command
 
-    for pickStack in range (getWorldLength(startWorld)):        
-        for dropStack in range (getWorldLength(startWorld)):
-            neighborNode = deepcopy(node)
-            object = pick(neighborNode.world, pickStack)
+def performMove(node, command):
+    neighbors = list()
+    
 
-            if (object == None):
-                continue
+    if (command == 0):
+        for pickStack in range (len(startWorld)):        
+            for dropStack in range (len(startWorld)):
+                neighborNode = deepcopy(node)
+                object = pick(neighborNode.world, pickStack)
 
-            drop(neighborNode.world, dropStack, object)
+                if (object == None):
+                    continue
+
+                drop(neighborNode.world, dropStack, object)
             
-            neighbors.append(neighborNode)
+                neighbors.append(neighborNode)
+    
+    elif (command == 1):
+        for dropStack in rage (len(startWorld)):
+
+    
+    elif (command == 2):
+
+    
     return neighbors    
 
 def pick(world, stack):
@@ -228,6 +242,7 @@ def pick(world, stack):
 def drop(world, stack, object):
     return world[stack].append(object)
 
+# FIX HEURISTIC FOR TAKE AND DROP
 def heuristic_cost_estimate(world, goal):
     goalList = goal.split(",")
     relation = goalList[0]
@@ -375,6 +390,17 @@ def getLocation(world, object):
 
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
+   startWorld = [["e","n","h"],["d","m","g"],[],[]]
+   goal = ["onTop,e,d"]
+   pickAndDrop = search(startWorld, goal[0])
+   print pickAndDrop
+
+#   stack = ["g"]
+#   object = "l"
+
+#   rules = Rules()
+
+#   print rules.applyRules(object, stack)
 
     #startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
     startWorld = [["e"],["g","l"],[],["k","m","f"],[]]
