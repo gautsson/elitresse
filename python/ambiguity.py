@@ -61,6 +61,23 @@ class AmbiguityResolver:
             mainObj = parsedList.pop()
             relObj = self.filterElements(mainObj, relation, relObj)
         return relObj
+    def getObjectAttributes(self, objects):
+        return objects
+    
+    def getObjectDifferences(self, objects):
+        objects = getObjectAttributes(objects)
+        attribute = 0
+        while attribute < 3:
+            attrList = []
+            for obj in objects:
+                attrList.append(obj(attribute));
+            attrList = set(attrList);
+            if len(attrList) > 1:
+                return attribute
+            else:
+                attribute = attribute + 1
+                
+        
         
         
     def onTop(self, topObject, botObject): 
@@ -98,15 +115,13 @@ class AmbiguityResolver:
         '''
         return math.fabs(object[0]-nextObject[0]) == 1
 
-    def convertToPDDL(self, sourceList, relation, targetList):
-            ''' Takes a list of source objects, a relation and a list of target objects
+    def convertToPDDL(self, source, relation, target):
+            ''' Takes a source object, a relation and a target object
             and converts it into PDDL in order to allow processing by the planner.
-            Creates every possible combination of goals of the two lists.
-            Returns a list of PDDL goals.
+            Returns a PDDL goal.
             '''
-            pddl = []
-           
-            if len(sourceList) > 1 and len(targetList) > 1:
+            return ((relation,source, target))
+            '''if len(sourceList) > 1 and len(targetList) > 1:
                 pddl.append("or")
                 for item in sourceList:
                     for otherItem in targetList:
@@ -122,7 +137,7 @@ class AmbiguityResolver:
                     pddl.append((relation,sourceList[0],item))
             else:
                 pddl.append((relation, sourceList[0], targetList[0]))
-            return pddl
+            return pddl'''
 
 
     
