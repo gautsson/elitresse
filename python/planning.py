@@ -377,11 +377,11 @@ if __name__ == '__main__':
     #print reconstructPath(node9, [])
 
     #startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
-    #startWorld = [["e"],["g","l"],[],["k","m","f"],[]]
+    startWorld = [["e"],["g","l"],[],["k","m","f"],[]]
     #goal = "drop,h"
-    #goal = ["take,e"]
-    #pickAndDrop = search(startWorld, goal[0])
-    #print pickAndDrop
+    goal = ["take,e"]
+    pickAndDrop = search(startWorld, goal[0])
+    print pickAndDrop
     #test = isGoal(startWorld,goal)
     #print test
 
