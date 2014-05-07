@@ -1,42 +1,29 @@
 from heapq import *
 from copy import deepcopy
 
-#
-# Temporary stuff just for testing and debugging purposes
-#
+class Planner:
+    
+    def __init__(self, world, holding, objects):
+        self.startWorld = world
+        self.holding = holding
+        self.objects = objects
 
-startWorld = [["e"],["a","l"],[],["c","d","f"]]
-goal = ["onTop", "c", "a"]
-objects = {
-    "a": { "form":"brick",   "size":"large",  "color":"green" },
-    "b": { "form":"brick",   "size":"small",  "color":"white" },
-    "c": { "form":"plank",   "size":"large",  "color":"red"   },
-    "d": { "form":"plank",   "size":"small",  "color":"green" },
-    "e": { "form":"ball",    "size":"large",  "color":"white" },
-    "f": { "form":"ball",    "size":"small",  "color":"black" },
-    "g": { "form":"table",   "size":"large",  "color":"blue"  },
-    "h": { "form":"table",   "size":"small",  "color":"red"   },
-    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
-    "k": { "form":"box",     "size":"large",  "color":"yellow"},
-    "l": { "form":"box",     "size":"large",  "color":"red"   },
-    "m": { "form":"box",     "size":"small",  "color":"blue"} }
+    
+    #
+    # Node class, which storesI information about all the states the world goes through
+    #
 
-#
-# Node class, which stores information about all the states the world goes through
-#
+    class Node:
+        def __init__(self, parent, world, g, h, f):
+            self.parent = parent
+            self.world = world
 
-class Node:
-    def __init__(self, parent, world, g, h, f):
-        self.parent = parent
-        self.world = world
-
-        self.g = g
-        self.h = h
-        self.f = f
+            self.g = g
+            self.h = h
+            self.f = f
    
-    def compareTo(self, node):
-       return self.world == node.world 
+        def compareTo(self, node):
+            return self.world == node.world 
 
 #
 # Rules class which holds the constraints
@@ -50,86 +37,85 @@ class Node:
 # Boxes can only be supported by tables or planks of the same size,
 # but large boxes can also be supported by large bricks.
 
-class Rules:
-    def __init__(self):
-        self.ruleList = [self.ballInBox, self.notSupportedByBall, self.smallBeneathLarge,
-                self.containedInBox, self.boxIsSupported]
+    class Rules:
+        def __init__(self, objects):
+            self.ruleList = [self.ballInBox, self.notSupportedByBall, self.smallBeneathLarge,
+                    self.containedInBox, self.boxIsSupported]
+            self.objects = objects
 
-    def applyRules(self, object, stack):
-        print object
-        if len(stack) == 0:
-            return True
-        else:
-            object = getObjectDescription(object)
-            stackObject = getObjectDescription(stack[-1])
-            for rule in self.ruleList:
-                if rule(object, stackObject) == False:
-                    return False
-
-            return True
-
-
-
-    def ballInBox(self, object, stackObject): 
-        if object["form"] == "ball":
-            if stackObject["form"] == "box":
+        def applyRules(self, objectId, stack):
+            if len(stack) == 0:
                 return True
             else:
+                object = self.objects[objectId]
+                stackObject = self.objects[stack[-1]]
+
+                for rule in self.ruleList:
+                    if rule(object, stackObject) == False:
+                        return False
+
+                return True
+
+        def ballInBox(self, object, stackObject): 
+            if object["form"] == "ball":
+                if stackObject["form"] == "box":
+                    return True
+                else:
+                    return False
+
+        def notSupportedByBall(self, object, stackObject):
+            return not stackObject["form"] == "ball"
+
+        def smallBeneathLarge(self, object, stackObject):
+            if stackObject["size"] == "small" and object["size"] == "large":
                 return False
+            else:
+                return True
 
-    def notSupportedByBall(self, object, stackObject):
-        return not stackObject["form"] == "ball"
-
-    def smallBeneathLarge(self, object, stackObject):
-        if stackObject["size"] == "small" and object["size"] == "large":
-            return False
-        else:
-            return True
-
-    def containedInBox(self, object, stackObject):
+        def containedInBox(self, object, stackObject):
         #Boxes cannot contain pyramids or planks of the same size
         #ASK THE SUPERVISOR ABOUT THIS. Should small boxes be able to contain large pyramids or large planks ?!? Because according
         #to the specification, they should!
-        if stackObject["form"] == "box":
-            if object["form"] == "pyramid" and object["size"] == stackObject["size"]:
-                return False
-            elif object["form"] == "plank" and object["size"] == stackObject["size"]:
-                return False
+            if stackObject["form"] == "box":
+                if object["form"] == "pyramid" and object["size"] == stackObject["size"]:
+                    return False
+                elif object["form"] == "plank" and object["size"] == stackObject["size"]:
+                    return False
+                else:
+                    return True
             else:
                 return True
-        else:
-            return True
 
-    def boxIsSupported(self, object, stackObject):
-    # Boxes can only be supported by tables or planks of the same size,
-    # but large boxes can also be supported by large bricks.
-        if object["form"] == "box":
-            if stackObject["form"] == "table" and object["size"] == stackObject["size"]:
-                return True
-            elif stackObject["form"] == "plank" and object["size"] == stackObject["size"]:
-                return True
-            elif object["size"] == "large" and stackObject["form"] == "brick" and stackObject["size"] == "large":
-                return True
-            else:
-                return False
+        def boxIsSupported(self, object, stackObject):
+        # Boxes can only be supported by tables or planks of the same size,
+        # but large boxes can also be supported by large bricks.
+            if object["form"] == "box":
+                if stackObject["form"] == "table" and object["size"] == stackObject["size"]:
+                    return True
+                elif stackObject["form"] == "plank" and object["size"] == stackObject["size"]:
+                    return True
+                elif object["size"] == "large" and stackObject["form"] == "brick" and stackObject["size"] == "large":
+                    return True
+                else:
+                    return False
 
 # ----------------------------------------------------------
 
 # Gets the stack of an object
-def getObjectStack(object, world):
-    stack = 0
-    for item in world:
-        if object in item:
-            return stack
-        else:
-            stack = stack+1
+    def getObjectStack(self, object, world):
+        stack = 0
+        for item in world:
+            if object in item:
+                return stack
+            else:
+                stack = stack+1
 
 #
 # The search function, our pride and joy
 #
 
-def search(world, goal):
-    goalList = goal.split(",")
+    def search(self, goal):
+        goalList = goal.split(",")
 
     # if len(goalList) == 2:
     #     relation = goalList[0]
@@ -140,278 +126,272 @@ def search(world, goal):
     #         pass
 
     # else:
-    closedSet = []
-    openSet = []
+        closedSet = []
+        openSet = []
 
-    gScore = 0
-    hScore = 0
-    fScore = 0
+        gScore = 0
+        hScore = 0
+        fScore = 0
     
-    startNode = Node(None, world, gScore, hScore, fScore)
+        startNode = self.Node(None, self.startWorld, gScore, hScore, fScore)
 
-    startTuple = (0, startNode)
-    heappush(openSet, startTuple)
+        startTuple = (0, startNode)
+        heappush(openSet, startTuple)
 
-    while openSet != []:
-        currentNode = heappop(openSet)[1]
+        while openSet != []:
+            currentNode = heappop(openSet)[1]
 
-        if (isGoal(currentNode.world, goal)):
-            return reconstructPath(currentNode, list())
+            if (self.isGoal(currentNode.world, goal)):
+                return self.reconstructPath(currentNode, list())
 
-        closedSet.append(currentNode)
+            closedSet.append(currentNode)
 
-        for neighbor in performMove(currentNode):
-            cost = currentNode.g + movementCost(currentNode, neighbor)      
+            for neighbor in self.performMove(currentNode):
+                cost = currentNode.g + self.movementCost(currentNode, neighbor)      
 
-            nodeInOpenSet = isNodeInOpenSet(openSet, neighbor)
+                nodeInOpenSet = self.isNodeInOpenSet(openSet, neighbor)
 
-            if (nodeInOpenSet[1] != None and cost < nodeInOpenSet[1].g):
-                removeNodeFromSet(openSet, nodeInOpenSet[0])
+                if (nodeInOpenSet[1] != None and cost < nodeInOpenSet[1].g):
+                    self.removeNodeFromSet(openSet, nodeInOpenSet[0])
 
-            nodeInClosedSet = isNodeInClosedSet(closedSet, neighbor)
+                nodeInClosedSet = self.isNodeInClosedSet(closedSet, neighbor)
 
-            if (nodeInOpenSet[1] == None and nodeInClosedSet == None):
-                neighbor.g = cost
-                neighbor.h = heuristic_cost_estimate(neighbor.world, goal)
-                neighbor.f = neighbor.g + neighbor.h
+                if (nodeInOpenSet[1] == None and nodeInClosedSet == None):
+                    neighbor.g = cost
+                    neighbor.h = self.heuristic_cost_estimate(neighbor.world, goal)
+                    neighbor.f = neighbor.g + neighbor.h
 
-                neighbor.parent = currentNode
-                neighborTuple = (neighbor.f, neighbor)
-                heappush(openSet, neighborTuple)
+                    neighbor.parent = currentNode
+                    neighborTuple = (neighbor.f, neighbor)
+                    heappush(openSet, neighborTuple)
 
 #
 # Helper functions for the search function 
 #
 
-def isNodeInOpenSet(openSet, node):
-    index = 0
-    for compNode in openSet:
-        if node.compareTo(compNode[1]):
-            return (index, compNode[1])
-        index = index + 1
+    def isNodeInOpenSet(self, openSet, node):
+        index = 0
+        for compNode in openSet:
+            if node.compareTo(compNode[1]):
+                return (index, compNode[1])
+            index = index + 1
     
-    return (0, None)
+        return (0, None)
 
-def isNodeInClosedSet(closedSet, node):
-    for compNode in closedSet:
-        if node.compareTo(compNode):
-            return compNode
+    def isNodeInClosedSet(self, closedSet, node):
+        for compNode in closedSet:
+            if node.compareTo(compNode):
+                return compNode
     
-    return None
+        return None
 
-def removeNodeFromSet(set, index):
-    set.pop(index)
+    def removeNodeFromSet(self, set, index):
+        set.pop(index)
 
 #A command is passed to performMove, where 
 # 0 corresponds to do a pick and a drop
 # 1 correponds to do a pick command
 # 2 corresponds to do a drop command
 
-def performMove(node, command):
-    neighbors = list()
-    
+    def performMove(self, node):
+        neighbors = list()
 
-    if (command == 0):
-        for pickStack in range (len(startWorld)):        
-            for dropStack in range (len(startWorld)):
+        for pickStack in range (len(self.startWorld)):        
+            for dropStack in [stack for stack in range (len(self.startWorld)) if not stack == pickStack]:
                 neighborNode = deepcopy(node)
-                object = pick(neighborNode.world, pickStack)
+                object = self.pick(neighborNode.world, pickStack)
 
-                if (object == None):
+                if (object == None) or (not self.drop(neighborNode.world, dropStack, object)):
                     continue
 
-                drop(neighborNode.world, dropStack, object)
-            
+#                self.drop(neighborNode.world, dropStack, object)
+
                 neighbors.append(neighborNode)
+        
+        return neighbors    
     
-    elif (command == 1):
-        for dropStack in rage (len(startWorld)):
+    def pick(self, world, stack):
+        if (self.getStackHeight(world, stack) > 0):
+            return world[stack].pop()
+        else:
+            return None
 
-    
-    elif (command == 2):
+    def drop(self, world, stack, object):
+        rules = self.Rules(self.objects)
 
-    
-    return neighbors    
+        if (rules.applyRules(object, world[stack])):
+            world[stack].append(object)
+            return True
+        else:
+            return False
 
-def pick(world, stack):
-    if (getStackHeight(world, stack) > 0):
-        return world[stack].pop()
-    else:
-        return None
+    # FIX HEURISTIC FOR TAKE AND DROP
+    def heuristic_cost_estimate(self, world, goal):
+        goalList = goal.split(",")
+        relation = goalList[0]
+        objA = goalList[1]
+        locA = self.getLocation(world, objA)
 
-def drop(world, stack, object):
-    return world[stack].append(object)
+        if (len(goalList) == 2):
+            return 4
+        else:
+            objB = goalList[2]
+            locB = self.getLocation(world, objB)
+            return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0])))
 
-# FIX HEURISTIC FOR TAKE AND DROP
-def heuristic_cost_estimate(world, goal):
-    goalList = goal.split(",")
-    relation = goalList[0]
-    objA = goalList[1]
-    locA = getLocation(world, objA)
+    def reconstructPath(self, node, commandString):
+        if node.parent == None: # Base case
+            return commandString
+        else:
+            parentNode, command = self.parseNode(node)
+            return self.reconstructPath(parentNode, command + commandString)
 
-    if (len(goalList) == 2):
-        return 4
-    else:
-        objB = goalList[2]
-        locB = getLocation(world, objB)
-        return abs((locA[1] - getStackHeight(world, locA[0])) + (locB[1] - getStackHeight(world, locB[0])))
+    def parseNode(self, node):  
+        parentNode = node.parent
+        parentWorld = node.parent.world
+        currentWorld = node.world
+        worldLength = len (parentWorld)
+        list = []
 
-def reconstructPath(node, commandString):
-    if node.parent == None: # Base case
-        return commandString
-    else:
-        parentNode, command = parseNode(node)
-        return reconstructPath(parentNode, command + commandString)
+        parentWorldConcat = [value for sublist in parentWorld for value in sublist]
+        currentWorldConcat = [value for sublist in currentWorld for value in sublist]
+        pickString = ""
+        dropString = ""
 
-def parseNode(node):  
-    parentNode = node.parent
-    parentWorld = node.parent.world
-    currentWorld = node.world
-    worldLength = len (parentWorld)
-    list = []
+        if (len (parentWorldConcat) == len (currentWorldConcat)):
 
-    parentWorldConcat = [value for sublist in parentWorld for value in sublist]
-    currentWorldConcat = [value for sublist in currentWorld for value in sublist]
-    pickString = ""
-    dropString = ""
+            for i in range(0,worldLength):
+                if currentWorld[i] < parentWorld[i]:
+                    pickString = "pick " + str(i)
+                    
+                if currentWorld[i] > parentWorld[i]:
+                    dropString = "drop " + str(i)
+              
+            list.append(pickString)
+            list.append(dropString) 
+            return (parentNode, list)
 
-    if (len (parentWorldConcat) == len (currentWorldConcat)):
+        elif (len (parentWorldConcat) > len (currentWorldConcat)):
+            # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
+            changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
+            theStack = getObjectStack(changedElement, parentWorld)
+            newCommand = "pick " + str(theStack)
+            list.append(newCommand)
+            return (parentNode, list)
+        else:
+            # This loop gets run if the first command is a pick, i.e. if the arm was holding an object
+            changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
+            theStack = getObjectStack(changedElement, currentWorld)
+            newCommand = "drop " + str(theStack)
+            list.append(newCommand)
+            return (parentNode, list)
 
-        for i in range(0,worldLength):
-            if currentWorld[i] < parentWorld[i]:
-                pickString = "pick " + str(i)
-                
-            if currentWorld[i] > parentWorld[i]:
-                dropString = "drop " + str(i)
-          
-        list.append(pickString)
-        list.append(dropString) 
-        return (parentNode, list)
+    def movementCost(self, fromNode, toNode):
+        fromWorld = fromNode.world
+        toWorld = toNode.world
+        start = -1
+        end = -1
 
-    elif (len (parentWorldConcat) > len (currentWorldConcat)):
-        # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
-        changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
-        theStack = getObjectStack(changedElement, parentWorld)
-        newCommand = "pick " + str(theStack)
-        list.append(newCommand)
-        return (parentNode, list)
-    else:
-        # This loop gets run if the first command is a pick, i.e. if the arm was holding an object
-        changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
-        theStack = getObjectStack(changedElement, currentWorld)
-        newCommand = "drop " + str(theStack)
-        list.append(newCommand)
-        return (parentNode, list)
+        for column in range(self.getWorldLength(self.startWorld)):
+            if (len(fromWorld[column]) != len(toWorld[column]) and start == -1):
+                start = column
+            elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
+                end = column
 
-def movementCost(fromNode, toNode):
-    fromWorld = fromNode.world
-    toWorld = toNode.world
-    start = -1
-    end = -1
-
-    for column in range(getWorldLength(startWorld)):
-        if (len(fromWorld[column]) != len(toWorld[column]) and start == -1):
-            start = column
-        elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
-            end = column
-
-    return abs(end - start) 
+        return abs(end - start) 
 
 
-# Checks whether the goal has been satisfied or not
-def isGoal(world, goal):
-    goalList = goal.split(",")
-    relation = goalList[0]
-    sourceObject = goalList[1]
-    sourceObjectLocation = getLocation(world, sourceObject) 
-    
-    # For the case when the arm picks something up. Becomes true if the arm is holding the source object, i.e. if it doesn't exist in the world
-    if (len(goalList) == 2):
-        if relation == "take":
-            return not sourceObjectLocation
-        elif relation == "drop":
-            return not not sourceObjectLocation
+    # Checks whether the goal has been satisfied or not
+    def isGoal(self, world, goal):
+        goalList = goal.split(",")
+        relation = goalList[0]
+        sourceObject = goalList[1]
+        sourceObjectLocation = self.getLocation(world, sourceObject) 
+        
+        # For the case when the arm picks something up. Becomes true if the arm is holding the source object, i.e. if it doesn't exist in the world
+        if (len(goalList) == 2):
+            if relation == "take":
+                return not sourceObjectLocation
+            elif relation == "drop":
+                return not not sourceObjectLocation
 
-    else:
-        targetObject = goalList[2]
-        targetObjectLocation = getLocation(world, targetObject)
+        else:
+            targetObject = goalList[2]
+            targetObjectLocation = self.getLocation(world, targetObject)
 
-        if relation == "onTop" or relation == "inside":
-            if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1:
-                return True
-            else:
-                return False
-        elif relation == "above":
-            if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]:
-                return True
-            else:
-                return False
-        elif relation == "under":
-            if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]:
-                return True
-            else:
-                return False
-        elif relation == "beside":
-            if sourceObjectLocation[0] == targetObjectLocation[0] + 1 or sourceObjectLocation[0] == targetObjectLocation[0] - 1:
-                return True
-            else:
-                return False
-        elif relation == "leftOf":
-            if sourceObjectLocation[0] < targetObjectLocation[0]:
-                return True
-            else:
-                return False
-        elif relation == "rightOf":
-            if sourceObjectLocation[0] > targetObjectLocation[0]:
-                return True
-            else:
-                return False
-
-
-# Utility functions, remove these functions
-def getWorldLength(world):
-    return len(world)
-
-def getStackHeight(world, stack):
-    return len(world[stack])
-
-def getObject(world, column, row):
-    return world[column][row]
-
-def getObjectDescription(object):
-    return objects[object]
-
-def getLocation(world, object): 
-    for column in range(getWorldLength(startWorld)):
-        for row in range(getStackHeight(world, column)):
-            if object == getObject(world, column, row):
-                return (column, row)
+            if relation == "onTop" or relation == "inside":
+                if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1:
+                    return True
+                else:
+                    return False
+            elif relation == "above":
+                if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]:
+                    return True
+                else:
+                    return False
+            elif relation == "under":
+                if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]:
+                    return True
+                else:
+                    return False
+            elif relation == "beside":
+                if sourceObjectLocation[0] == targetObjectLocation[0] + 1 or sourceObjectLocation[0] == targetObjectLocation[0] - 1:
+                    return True
+                else:
+                    return False
+            elif relation == "leftOf":
+                if sourceObjectLocation[0] < targetObjectLocation[0]:
+                    return True
+                else:
+                    return False
+            elif relation == "rightOf":
+                if sourceObjectLocation[0] > targetObjectLocation[0]:
+                    return True
+                else:
+                    return False
 
 
-if __name__ == '__main__':
-    #print reconstructPath(node9, [])
-   startWorld = [["e","n","h"],["d","m","g"],[],[]]
-   goal = ["onTop,e,d"]
-   pickAndDrop = search(startWorld, goal[0])
-   print pickAndDrop
+    # Utility functions, remove these functions
+    def getWorldLength(self, world):
+        return len(world)
 
-#   stack = ["g"]
-#   object = "l"
+    def getStackHeight(self, world, stack):
+        return len(world[stack])
 
-#   rules = Rules()
+    def getObject(self, world, column, row):
+        return world[column][row]
 
-#   print rules.applyRules(object, stack)
+    def getObjectDescription(self, object):
+        return self.objects[object]
 
-    #startWorld = [["e"],["a","l"],["k","g","c","b"],[],["d","m","f"]]
-    #startWorld = [["e"],["g","l"],[],["k","m","f"],[]]
-    #goal = "drop,h"
-    #goal = ["take,e"]
-    #pickAndDrop = search(startWorld, goal[0])
-    #print pickAndDrop
-    #test = isGoal(startWorld,goal)
-    #print test
+    def getLocation(self, world, object): 
+        for column in range(self.getWorldLength(self.startWorld)):
+            for row in range(self.getStackHeight(world, column)):
+                if object == self.getObject(world, column, row):
+                    return (column, row)
 
-    stack = ["a"]
-    object = "k"
-    rules = Rules()
-    print rules.applyRules(object, stack)
+    if __name__ == '__main__':
+        #print reconstructPath(node9, [])
+        # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
+        world = [["e"],["g","l"],[],["k","m","f"],[]]
+        #objects = {
+        #"a": { "form":"brick",   "size":"large",  "color":"green" },
+        #"b": { "form":"brick",   "size":"small",  "color":"white" },
+        #"c": { "form":"plank",   "size":"large",  "color":"red"   },
+        #"d": { "form":"plank",   "size":"small",  "color":"green" },
+        #"e": { "form":"ball",    "size":"large",  "color":"white" },
+        #"f": { "form":"ball",    "size":"small",  "color":"black" },
+        #"g": { "form":"table",   "size":"large",  "color":"blue"  },
+        #"h": { "form":"table",   "size":"small",  "color":"red"   },
+        #"i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+        #"j": { "form":"pyramid", "size":"small",  "color":"red"   },
+        #"k": { "form":"box",     "size":"large",  "color":"yellow"},
+        #"l": { "form":"box",     "size":"large",  "color":"red"   },
+        #"m": { "form":"box",     "size":"small",  "color":"blue"  }
+        #}
+        #goal = ["onTop,e,f"
+        #planner = Planner(world, null, objects)
+
+        #print planner.search(goal)
+        #goal = "above,e,j" 
+        #test = self.isGoal(medium,goal) 
