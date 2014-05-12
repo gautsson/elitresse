@@ -53,7 +53,6 @@ class Planner:
                 for rule in self.ruleList:
                     if rule(object, stackObject) == False:
                         return False
-
                 return True
 
         def ballInBox(self, object, stackObject): 
@@ -306,13 +305,17 @@ class Planner:
         goalList = goal.split(",")
         relation = goalList[0]
         sourceObject = goalList[1]
-        sourceObjectLocation = self.getLocation(world, sourceObject) 
+        sourceObjectLocation = self.getLocation(world, sourceObject)
+        emptyStacks = self.getEmptyStacks(world) 
         
         # For the case when the arm picks something up. Becomes true if the arm is holding the source object, i.e. if it doesn't exist in the world
         if (len(goalList) == 2):
             if relation == "take":
                 return not sourceObjectLocation
             elif relation == "drop":
+                if sourceObject == "floor":
+                    if not emptyStacks:
+                        return ""
                 return not not sourceObjectLocation
 
         else:
@@ -349,6 +352,7 @@ class Planner:
                     return True
                 else:
                     return False
+            # elif relation == "put"
 
 
     # Utility functions, remove these functions
@@ -370,10 +374,19 @@ class Planner:
                 if object == self.getObject(world, column, row):
                     return (column, row)
 
+    # Gets all the empty stacks in the world
+    def getEmptyStacks(self, world):
+        x = []
+        for stack, object in enumerate(world):
+            if not object:
+                x.append(stack)
+        return x
+
     if __name__ == '__main__':
         #print reconstructPath(node9, [])
         # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
         world = [["e"],["g","l"],[],["k","m","f"],[]]
+        print getEmptyStacks(world)
         #objects = {
         #"a": { "form":"brick",   "size":"large",  "color":"green" },
         #"b": { "form":"brick",   "size":"small",  "color":"white" },

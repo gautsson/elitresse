@@ -63,7 +63,7 @@ def parse(utterance):
 #return ["pick 1", "drop 2"]
 #return ["I do as you tell me"] + pickAndDrop
 def interpret(tree, world, holding, objects):
-    return ["inside,e,l"]
+    return ["drop,e,floor"]
 
 def solve(goal, world, holding, objects):
     planner = planning.Planner(world, holding, objects)
