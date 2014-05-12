@@ -1,5 +1,5 @@
 from heapq import *
-from copy import deepcopy
+from copy import *
 
 class Planner:
     
@@ -24,37 +24,26 @@ class Planner:
    
         def compareTo(self, node):
             return self.world == node.world 
-
-#
-# Rules class which holds the constraints
-#
-# The constraints are:
-#
-# Balls must be in boxes or on the floor, otherwise they roll away
-# Balls cannot support anything
-# Small objects cannot support large objects
-# Boxes cannot contain pyramids or planks of the same size
-# Boxes can only be supported by tables or planks of the same size,
-# but large boxes can also be supported by large bricks.
-
+    #
+    # Rules class which holds the constraints
+    #
     class Rules:
         def __init__(self, objects):
             self.ruleList = [self.ballInBox, self.notSupportedByBall, self.smallBeneathLarge,
                     self.containedInBox, self.boxIsSupported]
             self.objects = objects
 
-        def applyRules(self, objectId, stack):
-            if len(stack) == 0:
-                return True
-            else:
-                object = self.objects[objectId]
-                stackObject = self.objects[stack[-1]]
+        def applyRules(self, objectId, stackObjectId):
+            object = self.objects[objectId]
+            stackObject = self.objects[stackObjectId]
 
-                for rule in self.ruleList:
-                    if rule(object, stackObject) == False:
-                        return False
+            for rule in self.ruleList:
+                if rule(object, stackObject) == False:
+                    return False
 
-                return True
+            return True
+
+        # Balls must be in boxes or on the floor, otherwise they roll away 
 
         def ballInBox(self, object, stackObject): 
             if object["form"] == "ball":
@@ -63,14 +52,20 @@ class Planner:
                 else:
                     return False
 
+        # Balls cannot support anything
+
         def notSupportedByBall(self, object, stackObject):
             return not stackObject["form"] == "ball"
+
+        # Small objects cannot support large objects
 
         def smallBeneathLarge(self, object, stackObject):
             if stackObject["size"] == "small" and object["size"] == "large":
                 return False
             else:
                 return True
+
+        # Boxes cannot contain pyramids or planks of the same size
 
         def containedInBox(self, object, stackObject):
         #Boxes cannot contain pyramids or planks of the same size
@@ -85,6 +80,9 @@ class Planner:
                     return True
             else:
                 return True
+
+        # Boxes can only be supported by tables or planks of the same size,
+        # but large boxes can also be supported by large bricks.
 
         def boxIsSupported(self, object, stackObject):
         # Boxes can only be supported by tables or planks of the same size,
@@ -110,22 +108,64 @@ class Planner:
             else:
                 stack = stack+1
 
+    # Starting function
+    def startPlanning(self, goal):
+        # Getting the relations, the source object and the target object
+        # Example goal: ["move,leftOf,f,e"]
+        #above f,e
+        emptyStacks = self.getEmptyStacks(self.startWorld) 
+
+        goalList = goal.split(",")
+        command = goalList[0]
+
+        if command == "move":
+            relation = goalList[1]
+            sourceObject = goalList[2]
+            targetObject = goalList[3]
+
+            #If the relation is above, onTop or inside, we check whether the constraints allow the goal to be executed
+            
+            #if preConstraintCheck(sourceObject, targetObject):
+            self.search(goal)
+        
+        elif command == "take":
+            object = goalList[1]
+
+            if self.holding:
+                if self.holding == object:
+                    return ["I am already holding the object"]
+                else:
+                    self.search(goal)
+            else:
+                self.pick(newStartWorld, [stack for stack in range(len(self.startWorld)) if stack not in emptyStacks][0])
+                self.search(goal)
+        
+        elif command == "put":
+            relation = goalList[1]
+            targetObject = goalList[2]
+
+            #if preConstraintCheck(sourceObject, targetObject):
+
+            if not emptyStacks:
+                for stack in len(startWorld):
+                    if self.drop(newStartWorld, stack, holding):
+                        self.search(["move," + relation + "," + holding + "," + targetObject])
+            else:
+                self.drop(newStartWorld, emptyStacks[0], holding)
+                self.search(["move," + relation + "," + holding + "," + targetObject])
+        
+    def preConstraintCheck(self, relation, sourceObject, targetObject):
+        rules = self.Rules(self.objects)
+
+        return rules.applyRules(sourceObject, targetObject)
 #
 # The search function, our pride and joy
 #
 
-    def search(self, goal):
+    def search(self, goal): 
         goalList = goal.split(",")
+        command = goalList[0]
 
-    # if len(goalList) == 2:
-    #     relation = goalList[0]
-
-    #     if relation == "take":
-    #         pass
-    #     elif relation == "drop":
-    #         pass
-
-    # else:
         closedSet = []
         openSet = []
 
@@ -146,7 +186,7 @@ class Planner:
 
             closedSet.append(currentNode)
 
-            for neighbor in self.performMove(currentNode):
+            for neighbor in self.performMove(currentNode, command):
                 cost = currentNode.g + self.movementCost(currentNode, neighbor)      
 
                 nodeInOpenSet = self.isNodeInOpenSet(openSet, neighbor)
@@ -164,6 +204,7 @@ class Planner:
                     neighbor.parent = currentNode
                     neighborTuple = (neighbor.f, neighbor)
                     heappush(openSet, neighborTuple)
+        return "hello"
 
 #
 # Helper functions for the search function 
@@ -193,21 +234,36 @@ class Planner:
 # 1 correponds to do a pick command
 # 2 corresponds to do a drop command
 
-    def performMove(self, node):
+    def performMove(self, node, command):
         neighbors = list()
-
-        for pickStack in range (len(self.startWorld)):        
-            for dropStack in [stack for stack in range (len(self.startWorld)) if not stack == pickStack]:
-                neighborNode = deepcopy(node)
-                object = self.pick(neighborNode.world, pickStack)
-
-                if (object == None) or (not self.drop(neighborNode.world, dropStack, object)):
-                    continue
-
-#                self.drop(neighborNode.world, dropStack, object)
-
-                neighbors.append(neighborNode)
         
+        if command == "take":
+            for dropStack in [stack for stack in range (len(self.startWorld))]:        
+                for pickStack in [stack for stack in range (len(self.startWorld)) if not stack == dropStack]:
+                    neighborNode = deepcopy(node)
+                    
+                    if not self.drop(neighborNode.world, dropStack, object):
+                        continue
+
+                    if self.pick(neighborNode.world, pickStack) == None:
+                        continue
+
+                    neighbors.append(neighborNode)
+        
+        elif command == "move":
+            for pickStack in range (len(self.startWorld)):        
+                for dropStack in [stack for stack in range (len(self.startWorld)) if not stack == pickStack]:
+                    neighborNode = deepcopy(node)
+                    object = self.pick(neighborNode.world, pickStack)
+
+                    if (object == None):
+                        continue
+
+                    if not self.drop(neighborNode.world, dropStack, object):
+                        continue
+                    
+                    neighbors.append(neighborNode)
+
         return neighbors    
     
     def pick(self, world, stack):
@@ -219,24 +275,39 @@ class Planner:
     def drop(self, world, stack, object):
         rules = self.Rules(self.objects)
 
-        if (rules.applyRules(object, world[stack])):
+        if len (world[stack]) == 0:
             world[stack].append(object)
             return True
         else:
-            return False
+            stackObject = world[stack][-1]
+        
+            if (rules.applyRules(object, stackObject)):
+                world[stack].append(object)
+                return True
+            else:
+                return False
 
     # FIX HEURISTIC FOR TAKE AND DROP
     def heuristic_cost_estimate(self, world, goal):
         goalList = goal.split(",")
-        relation = goalList[0]
-        objA = goalList[1]
-        locA = self.getLocation(world, objA)
+        command = goalList[0]
+        
+        if command == "take":
+            object = goalList[1]
+            locObject = self.getLocation(world, object)
 
-        if (len(goalList) == 2):
-            return 4
-        else:
-            objB = goalList[2]
+            stackHeight = getStackHeight(world, locObject[0])
+
+            return ((stackHeight - locObject[1] + 1) * 2 + 1)
+            
+
+        elif command == "move":    
+            objA = goalList[2]
+            objB = goalList[3]
+
+            locA = self.getLocation(world, objA)
             locB = self.getLocation(world, objB)
+            
             return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0])))
 
     def reconstructPath(self, node, commandString):
@@ -304,52 +375,32 @@ class Planner:
     # Checks whether the goal has been satisfied or not
     def isGoal(self, world, goal):
         goalList = goal.split(",")
-        relation = goalList[0]
-        sourceObject = goalList[1]
-        sourceObjectLocation = self.getLocation(world, sourceObject) 
+        command = goalList[0]
         
-        # For the case when the arm picks something up. Becomes true if the arm is holding the source object, i.e. if it doesn't exist in the world
-        if (len(goalList) == 2):
-            if relation == "take":
-                return not sourceObjectLocation
-            elif relation == "drop":
-                return not not sourceObjectLocation
+        if command == "take":
+            sourceObject = goalList[1]
+            sourceObjectLocation = self.getLocation(world, sourceObject)
 
-        else:
-            targetObject = goalList[2]
+            return not sourceObjectLocation
+        elif command == "move":
+            relation = goalList[1]
+            sourceObject = goalList[2]
+            targetObject = goalList[3]
+            sourceObjectLocation = self.getLocation(world, sourceObject)
             targetObjectLocation = self.getLocation(world, targetObject)
 
             if relation == "onTop" or relation == "inside":
-                if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1:
-                    return True
-                else:
-                    return False
+                return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1
             elif relation == "above":
-                if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]:
-                    return True
-                else:
-                    return False
+                return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]
             elif relation == "under":
-                if sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]:
-                    return True
-                else:
-                    return False
+                return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]
             elif relation == "beside":
-                if sourceObjectLocation[0] == targetObjectLocation[0] + 1 or sourceObjectLocation[0] == targetObjectLocation[0] - 1:
-                    return True
-                else:
-                    return False
+                return (sourceObjectLocation[0] == targetObjectLocation[0] + 1) or (sourceObjectLocation[0] == targetObjectLocation[0] - 1)
             elif relation == "leftOf":
-                if sourceObjectLocation[0] < targetObjectLocation[0]:
-                    return True
-                else:
-                    return False
+                return sourceObjectLocation[0] < targetObjectLocation[0]
             elif relation == "rightOf":
-                if sourceObjectLocation[0] > targetObjectLocation[0]:
-                    return True
-                else:
-                    return False
-
+                return sourceObjectLocation[0] > targetObjectLocation[0]
 
     # Utility functions, remove these functions
     def getWorldLength(self, world):
@@ -365,33 +416,46 @@ class Planner:
         return self.objects[object]
 
     def getLocation(self, world, object): 
-        for column in range(self.getWorldLength(self.startWorld)):
+        for column in range(self.getWorldLength(world)):
             for row in range(self.getStackHeight(world, column)):
                 if object == self.getObject(world, column, row):
                     return (column, row)
 
-    if __name__ == '__main__':
-        #print reconstructPath(node9, [])
-        # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
-        world = [["e"],["g","l"],[],["k","m","f"],[]]
-        #objects = {
-        #"a": { "form":"brick",   "size":"large",  "color":"green" },
-        #"b": { "form":"brick",   "size":"small",  "color":"white" },
-        #"c": { "form":"plank",   "size":"large",  "color":"red"   },
-        #"d": { "form":"plank",   "size":"small",  "color":"green" },
-        #"e": { "form":"ball",    "size":"large",  "color":"white" },
-        #"f": { "form":"ball",    "size":"small",  "color":"black" },
-        #"g": { "form":"table",   "size":"large",  "color":"blue"  },
-        #"h": { "form":"table",   "size":"small",  "color":"red"   },
-        #"i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-        #"j": { "form":"pyramid", "size":"small",  "color":"red"   },
-        #"k": { "form":"box",     "size":"large",  "color":"yellow"},
-        #"l": { "form":"box",     "size":"large",  "color":"red"   },
-        #"m": { "form":"box",     "size":"small",  "color":"blue"  }
-        #}
-        #goal = ["onTop,e,f"
-        #planner = Planner(world, null, objects)
+    # Gets all the empty stacks in the world
+    def getEmptyStacks(self, world):
+        x = []
+        for stack, object in enumerate(world):
+            if not object:
+                x.append(stack)
+        return x
 
+    
+
+if __name__ == '__main__':
+    #print reconstructPath(node9, [])
+        # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
+    world = [["e"],["g","l"],[],["k","m","f"],[]]
+    objects = {
+    "a": { "form":"brick",   "size":"large",  "color":"green" },
+    "b": { "form":"brick",   "size":"small",  "color":"white" },
+    "c": { "form":"plank",   "size":"large",  "color":"red"   },
+    "d": { "form":"plank",   "size":"small",  "color":"green" },
+    "e": { "form":"ball",    "size":"large",  "color":"white" },
+    "f": { "form":"ball",    "size":"small",  "color":"black" },
+    "g": { "form":"table",   "size":"large",  "color":"blue"  },
+    "h": { "form":"table",   "size":"small",  "color":"red"   },
+    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    "k": { "form":"box",     "size":"large",  "color":"yellow"},
+    "l": { "form":"box",     "size":"large",  "color":"red"   },
+    "m": { "form":"box",     "size":"small",  "color":"blue"  }
+    }
+    goal = "move,onTop,e,k"
+    planner = Planner(world, None, objects)
+    #print planner.pick(world, 0)
+   #print world[0]
+#    print planner.heuristic_cost_estimate(world, goal)
+    print planner.startPlanning(goal)
         #print planner.search(goal)
         #goal = "above,e,j" 
         #test = self.isGoal(medium,goal) 
