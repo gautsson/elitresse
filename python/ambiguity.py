@@ -1,4 +1,5 @@
 import math
+import random
 
 class AmbiguityResolver:
     
@@ -40,34 +41,63 @@ class AmbiguityResolver:
             and calls the filterElements() function, to get rid of the elements that don't
             match with the spatial description
         '''
-        quantifiers = {
-                       "any": "a",
-                       "the": "t",
-                       "all": "al"
-                       }
+        quantifiers = ["any", "the", "all"]
             ## Reverse the list
         parsedList[::-1]
             ## Save the first object in the reversed list, which is the last object of reference for the main object
+        print 'now thou shaslt priny the list ', parsedList
+        quantifier = ""
         relObj = parsedList.pop()
+        if len(parsedList) < 2:
+            quantifier = parsedList.pop()
         while len(parsedList) > 1:
             if parsedList[len(parsedList)-1] in quantifiers:
                 #manage the ambiguity later using the quantifier
                 quantifier = parsedList.pop()
             relation = parsedList.pop()
             mainObj = parsedList.pop()
+            print "mainobject", mainObj
             relObj = self.filterElements(mainObj, relation, relObj)
-        if len(relObj) > 1 and not relObj == 'floor' :
-            objectAttributes = self.getObjectAttributes(relObj)
-            unformattedResult = self.getObjectDifferences(objectAttributes)
-            print "result from getobjectdifferences ", unformattedResult
-            for item in unformattedResult:
-                result = self.getMatchingObjects(item)
-                print "this should be coords of the resulting object(s)",result
-                #print len(result)
-            if len(result) > 1:
-                pass
-                #OHSHIT WE HAVE TO ASK OTHER KINDS OF QUESTIONS
+            print relObj
+        if quantifier == "the":
+            if len(relObj) > 1 and not relObj == 'floor' :
+                objectAttributes = self.getObjectAttributes(relObj)
+                unformattedResult = self.getObjectDifferences(objectAttributes)
+                print "result from getobjectdifferences ", unformattedResult
+                for item in unformattedResult:
+                    result = self.getMatchingObjects(item)
+                    print "this should be coords of the resulting object(s)",result
+                    #print len(result)
+                ##if len(result) > 1:
+                print "neighbours", self.positionDifferences([(3,3), (2,2)])    
+                    #OHSHIT WE HAVE TO ASK OTHER KINDS OF QUESTIONS
+        elif quantifier == "any":
+            return relObj[random.randrange(0, len(relObj)-1, 1)]
         return relObj
+    
+    def positionDifferences(self, objCandidates):
+        candidatesNeighb = []
+        for obj in objCandidates:
+            neighbours = []
+            if obj[0]-1 > -1 and len(self.worldPopulation[obj[0]-1]) >= 1:
+                neighbour.append((obj[0]-1, len(self.worldPopulation[obj[0]-1]) - 1))
+            else:
+                neighbours.append('-')
+            if len(self.worldPopulation[obj[0]]) >= obj[1]+1:
+                neighbours.append((obj[0], obj[1]+1))
+            else:
+                neighbours.append('-')
+            if obj[0]+1 < len(self.worldPopulation) and len(self.worldPopulation[obj[0]+1]) >= 1:
+                neighbours.append((obj[0]+1, len(self.worldPopulation[obj[0]-1]) + 1)))
+            else:
+                neighbours.append('-')
+            if obj[1]-1 > -1 and len(self.worldPopulation[obj[0]]) >= obj[1]-1:
+                neighbours.append((obj[0], obj[1]-1))
+            else:
+                neighbours.append('-')
+            candidatesNeighb.append(neighbours)
+        return candidatesNeighb
+            
         
     def cleanCandidates(self, objCandidates, answer, difference, value):
         newCandidates = []
@@ -247,8 +277,8 @@ class AmbiguityResolver:
                 source = False
             else:
                 targetList = self.parse(bigList)
-        action = targetList.pop(0)
-        #print "Source"
+        relation = targetList.pop(0)
+        print "relation", relation
         #print sourceList
         sourceResult = self.resolve(sourceList)
         #print "source result"
@@ -260,7 +290,7 @@ class AmbiguityResolver:
           ## If the target is the floor, find all the places available on the floor
         if targResult == "floor":
             targResult = self.findPlacesOnTheFloor()
-        pddl = self.convertToPDDL(sourceResult, action, targResult)
+        pddl = self.convertToPDDL(sourceResult, relation, targResult)
         #print "PDDL = "
         #print pddl
         #print self.getObjectDifferences([(1,1), (7,0), (9,1)])
@@ -402,7 +432,7 @@ if __name__ == '__main__':
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
-    ambMediumSolver.handleInput([[['any', ['ball', '', '']], ['inside', ['any', ['box', 'large', '']]]]])
+    ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['inside', [['the', ['box', '', '']], [['above', ['the', ['plank', '', '']]]]]]]])
     #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['ontop', 'floor']]])
 
     '''f = ambSmallSolver.getObjectCoordinates("f")
@@ -424,4 +454,3 @@ if __name__ == '__main__':
     print ambSmallSolver.beside(l, e)
     print ambSmallSolver.beside(m, l)
     '''
-
