@@ -1,5 +1,6 @@
 from heapq import *
 from copy import *
+from gc import *
 
 class Planner:
     
@@ -8,7 +9,7 @@ class Planner:
         self.holding = holding
         self.objects = objects
 
-    
+      #  print gc.isenabled()
     #
     # Node class, which storesI information about all the states the world goes through
     #
@@ -126,7 +127,7 @@ class Planner:
             #If the relation is above, onTop or inside, we check whether the constraints allow the goal to be executed
             
             #if preConstraintCheck(sourceObject, targetObject):
-            self.search(goal)
+            return self.search(goal)
         
         elif command == "take":
             object = goalList[1]
@@ -137,22 +138,29 @@ class Planner:
                 else:
                     self.search(goal)
             else:
-                self.pick(newStartWorld, [stack for stack in range(len(self.startWorld)) if stack not in emptyStacks][0])
+                self.holding = self.pick(self.startWorld, [stack for stack in range(len(self.startWorld)) if stack not in emptyStacks][0])
                 self.search(goal)
         
         elif command == "put":
             relation = goalList[1]
             targetObject = goalList[2]
 
+            goal = "move" + "," + relation + "," + self.holding + "," + targetObject
+            
             #if preConstraintCheck(sourceObject, targetObject):
-
+            
+            print goal
             if not emptyStacks:
-                for stack in len(startWorld):
-                    if self.drop(newStartWorld, stack, holding):
-                        self.search(["move," + relation + "," + holding + "," + targetObject])
+                print "1"
+                for stack in len(self.startWorld):
+                    if self.drop(self.startWorld, stack, self.holding):
+                        return self.search(goal)
+                    
             else:
-                self.drop(newStartWorld, emptyStacks[0], holding)
-                self.search(["move," + relation + "," + holding + "," + targetObject])
+                print "2"
+                self.drop(self.startWorld, emptyStacks[0], self.holding)
+                print self.startWorld
+                return self.search(goal)
         
     def preConstraintCheck(self, relation, sourceObject, targetObject):
         rules = self.Rules(self.objects)
@@ -179,6 +187,9 @@ class Planner:
         heappush(openSet, startTuple)
 
         while openSet != []:
+            #for node in openSet:
+            #    val, node = node
+            #    print node.world
             currentNode = heappop(openSet)[1]
 
             if (self.isGoal(currentNode.world, goal)):
@@ -200,11 +211,10 @@ class Planner:
                     neighbor.g = cost
                     neighbor.h = self.heuristic_cost_estimate(neighbor.world, goal)
                     neighbor.f = neighbor.g + neighbor.h
-
+                    
                     neighbor.parent = currentNode
                     neighborTuple = (neighbor.f, neighbor)
                     heappush(openSet, neighborTuple)
-        return "hello"
 
 #
 # Helper functions for the search function 
@@ -241,17 +251,21 @@ class Planner:
             for dropStack in [stack for stack in range (len(self.startWorld))]:        
                 for pickStack in [stack for stack in range (len(self.startWorld)) if not stack == dropStack]:
                     neighborNode = deepcopy(node)
+                    yugff
+                    if not self.drop(neighborNode.world, dropStack, self.holding):
+                        continue
                     
-                    if not self.drop(neighborNode.world, dropStack, object):
+                    tryHolding = self.pick(neighborNode.world, pickStack)
+                    
+                    if tryHolding == None:
                         continue
-
-                    if self.pick(neighborNode.world, pickStack) == None:
-                        continue
+                    else:
+                        self.holding = tryHolding
 
                     neighbors.append(neighborNode)
         
         elif command == "move":
-            for pickStack in range (len(self.startWorld)):        
+            for pickStack in [stack for stack in range (len(node.world)) if (len (node.world[stack]) > 0)]:        
                 for dropStack in [stack for stack in range (len(self.startWorld)) if not stack == pickStack]:
                     neighborNode = deepcopy(node)
                     object = self.pick(neighborNode.world, pickStack)
@@ -275,6 +289,7 @@ class Planner:
     def drop(self, world, stack, object):
         rules = self.Rules(self.objects)
 
+
         if len (world[stack]) == 0:
             world[stack].append(object)
             return True
@@ -291,15 +306,18 @@ class Planner:
     def heuristic_cost_estimate(self, world, goal):
         goalList = goal.split(",")
         command = goalList[0]
+       
         
         if command == "take":
             object = goalList[1]
-            locObject = self.getLocation(world, object)
+            if self.holding == object:
+                return 0
+    
+            else:
+                locObject = self.getLocation(world, object)
+                stackHeight = self.getStackHeight(world, locObject[0])
 
-            stackHeight = getStackHeight(world, locObject[0])
-
-            return ((stackHeight - locObject[1] + 1) * 2 + 1)
-            
+                return stackHeight - locObject[1]
 
         elif command == "move":    
             objA = goalList[2]
@@ -308,7 +326,7 @@ class Planner:
             locA = self.getLocation(world, objA)
             locB = self.getLocation(world, objB)
             
-            return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0])))
+            return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0]))) * (len(self.startWorld) / 5)
 
     def reconstructPath(self, node, commandString):
         if node.parent == None: # Base case
@@ -330,14 +348,13 @@ class Planner:
         dropString = ""
 
         if (len (parentWorldConcat) == len (currentWorldConcat)):
-
             for i in range(0,worldLength):
                 if currentWorld[i] < parentWorld[i]:
                     pickString = "pick " + str(i)
                     
                 if currentWorld[i] > parentWorld[i]:
                     dropString = "drop " + str(i)
-              
+
             list.append(pickString)
             list.append(dropString) 
             return (parentNode, list)
@@ -350,7 +367,7 @@ class Planner:
             list.append(newCommand)
             return (parentNode, list)
         else:
-            # This loop gets run if the first command is a pick, i.e. if the arm was holding an object
+            # This loop gets run if the first command is a drop, i.e. if the arm was holding an object
             changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
             theStack = getObjectStack(changedElement, currentWorld)
             newCommand = "drop " + str(theStack)
@@ -369,7 +386,7 @@ class Planner:
             elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
                 end = column
 
-        return abs(end - start) 
+        return abs(end - start)
 
 
     # Checks whether the goal has been satisfied or not
@@ -377,6 +394,11 @@ class Planner:
         goalList = goal.split(",")
         command = goalList[0]
         
+        print "world"
+        print  world
+        print "holding"
+        print self.holding
+
         if command == "take":
             sourceObject = goalList[1]
             sourceObjectLocation = self.getLocation(world, sourceObject)
@@ -434,7 +456,7 @@ class Planner:
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
         # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
-    world = [["e"],["g","l"],[],["k","m","f"],[]]
+    world = [["e"],[],[],["k"]]
     objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
     "b": { "form":"brick",   "size":"small",  "color":"white" },
@@ -450,8 +472,9 @@ if __name__ == '__main__':
     "l": { "form":"box",     "size":"large",  "color":"red"   },
     "m": { "form":"box",     "size":"small",  "color":"blue"  }
     }
-    goal = "move,onTop,e,k"
-    planner = Planner(world, None, objects)
+
+    goal = "take,k"
+    planner = Planner(world, "", objects)
     #print planner.pick(world, 0)
    #print world[0]
 #    print planner.heuristic_cost_estimate(world, goal)
