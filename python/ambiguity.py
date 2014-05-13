@@ -3,10 +3,8 @@ import random
 
 class AmbiguityResolver:
     
-    def __init__(self, goals, world):
-        ''' Takes a goal and a world object.
-            --- This is currently not being used this way, and is yet to be connected
-                to the methods of this class ---
+    def __init__(self, world):
+        ''' Takes a world object.
         '''
         self.world = world
         self.objectsInWorld = world.worldObjects
@@ -51,7 +49,6 @@ class AmbiguityResolver:
             quantifier = parsedList.pop()
         while len(parsedList) > 1:
             if parsedList[len(parsedList)-1] in quantifiers:
-                #manage the ambiguity later using the quantifier
                 quantifier = parsedList.pop()
             relation = parsedList.pop()
             mainObj = parsedList.pop()
@@ -323,8 +320,9 @@ class AmbiguityResolver:
           ## If the target is the floor, find all the places available on the floor
         if targResult == "floor":
             targResult = self.findPlacesOnTheFloor()
-        print relation, sourceResult, targResult
-        pddl = self.convertToPDDL(sourceResult, relation, targResult)
+        print (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
+        #pddl = self.convertToPDDL(sourceResult, relation, targResult)
+        return (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
         
     def parse(self, inputList):
         ''' Takes a list from the interpreter and parses it to a format
