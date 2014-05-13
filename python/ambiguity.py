@@ -452,15 +452,15 @@ class World:
         "sbox1":   { "form":"box",     "size":"small",  "color":"red"   },
         "sbox2":   { "form":"box",     "size":"small",  "color":"blue"} }
             
-if __name__ == '__main__':
+#if __name__ == '__main__':
     '''
         This method is purely for testing purposes of the above functions. 
     '''
-    myMediumWorld = World("medium")
-    ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
+    #myMediumWorld = World("medium")
+    #ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
     #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['inside', [['the', ['box', '', '']], [['above', ['the', ['plank', '', '']]]]]]]])
-    ambMediumSolver.handleInput([[['the', ['ball', '', 'black']], ['beside', [['any', ['pyramid', '', '']], [['ontop', 'floor']]]]]])
+    #ambMediumSolver.handleInput([[['the', ['ball', '', 'black']], ['beside', [['any', ['pyramid', '', '']], [['ontop', 'floor']]]]]])
 
     '''f = ambSmallSolver.getObjectCoordinates("f")
     m = ambSmallSolver.getObjectCoordinates("m")
