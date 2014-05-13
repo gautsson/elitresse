@@ -57,19 +57,26 @@ def parse(utterance):
     except ValueError:
         return []
 
+
+def interpret(tree, world, holding, objects):
+    #return [True]
+    return ["put,onTop,f"]
+
 #col = list(map(bool, world)).index(True)
 #return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
 #return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
 #return ["pick 1", "drop 2"]
 #return ["I do as you tell me"] + pickAndDrop
-def interpret(tree, world, holding, objects):
-    return ["take,e"]
-
-def solve(goal, world, holding, objects):
+#goal = ["onTop,c,a"]
+#return planning.performMove(goal, world)
+#return planning.test()
+    
+def solve(goal, world, holding, objects): 
+    holding = "e"
     planner = planning.Planner(world, holding, objects)
-    pickAndDrop = planner.search(goal)
+    pickAndDrop = planner.startPlanning(goal)
     return pickAndDrop
-
+    
 def main(utterance, world, holding, objects, **_):
     result = {}
     result['utterance'] = utterance
