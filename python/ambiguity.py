@@ -1,11 +1,10 @@
 import math
+import random
 
 class AmbiguityResolver:
     
-    def __init__(self, goals, world):
-        ''' Takes a goal and a world object.
-            --- This is currently not being used this way, and is yet to be connected
-                to the methods of this class ---
+    def __init__(self, world):
+        ''' Takes a world object.
         '''
         self.world = world
         self.objectsInWorld = world.worldObjects
@@ -40,28 +39,160 @@ class AmbiguityResolver:
             and calls the filterElements() function, to get rid of the elements that don't
             match with the spatial description
         '''
-        quantifiers = {
-                       "any": "a",
-                       "the": "t",
-                       "all": "al"
-                       }
+        quantifiers = ["any", "the", "all"]
             ## Reverse the list
         parsedList[::-1]
             ## Save the first object in the reversed list, which is the last object of reference for the main object
+        quantifier = ""
         relObj = parsedList.pop()
-        print relObj
-        print len(parsedList)
+        if len(parsedList) < 2:
+            quantifier = parsedList.pop()
         while len(parsedList) > 1:
             if parsedList[len(parsedList)-1] in quantifiers:
-                #manage the ambiguity later using the quantifier
                 quantifier = parsedList.pop()
-                print "quantifiers"
             relation = parsedList.pop()
-            print "relation"
             mainObj = parsedList.pop()
             relObj = self.filterElements(mainObj, relation, relObj)
-        return relObj
+        if quantifier == "the":
+            if len(relObj) > 1 and not relObj == 'floor' :
+                objectAttributes = self.getObjectAttributes(relObj)
+                unformattedResult = self.getObjectDifferences(objectAttributes)
+                result = self.getMatchingObjects(unformattedResult[0])
+                if len(unformattedResult) > 1:
+                    range = 1
+                    while (range < len(self.worldPopulation)):
+                        attributeList = []
+                        neighbours = self.getNeighbours(result, range)
+                        for neigh in neighbours:
+                            attributes = self.getObjectAttributes(neigh)
+                            attributeList.append(list(attributes))
+                        rawResult = self.selectByNeighbour(attributeList, unformattedResult[0])
+                        if not rawResult == -1:
+                            return result[rawResult]
+                        range = range + 1 
+                else:
+                    return result[0]
+                       
+        elif quantifier == "any" or quantifier == "all":
+            return relObj[random.randrange(0, len(relObj)-1, 1)]
+        return relObj[0]
+    
+    def selectByNeighbour(self, neighbourObjects, duplicateObject):
+        direction = ["to the right of a", "below a", "to the left of a", "above a"]
+        dir = 0
+        while dir < len(neighbourObjects[0]):
+            neighb = 0
+            while neighb < len(neighbourObjects[dir]):
+                if neighbourObjects[dir].count(neighbourObjects[dir][neighb]) == 1 and not neighbourObjects[dir][neighb] == "-":
+                    while True:
+                        answer = raw_input("Do you mean the "+ duplicateObject[2]+ " "+ duplicateObject[1]+ " "+ duplicateObject[0]+ " that is the closest "+
+                            direction[dir]+ " "+ neighbourObjects[dir][neighb][2]+ " "+ neighbourObjects[dir][neighb][1]+
+                                                     " "+ neighbourObjects[dir][neighb][0]+ " ? (Y/N)").upper()
+                        if answer == "Y":
+                            return neighb
+                        if answer == "N":
+                            if (len(neighbourObjects[dir]) - neighb) == 2:
+                                return neighb + 1
+                            elif (len(neighbourObjects[dir]) - neighb) == 1 and len(neighbourObjects[dir]) == 2:
+                                return neighb - 1
+                            else:
+                                neighb = neighb + 1
+                                break
+                else:
+                    neighb = neighb + 1
+            dir = dir + 1
+        return -1
+
+    def getNeighbours(self, objCandidates, range):
+        candidatesNeighb = []
+        leftNeighbours = []
+        topNeighbours = []
+        rightNeighbours = []
+        bottomNeighbours = []
+        for obj in objCandidates:
+            if obj[0]-range > -1 and len(self.worldPopulation[obj[0]-range]) >= 1:
+                leftNeighbours.append((obj[0]-range, len(self.worldPopulation[obj[0]-range]) - 1))
+            else:
+                leftNeighbours.append('-')
+                
+            if len(self.worldPopulation[obj[0]]) > obj[1]+range:
+                topNeighbours.append((obj[0], obj[1]+range))
+            else:
+                topNeighbours.append('-')
+                
+            if obj[0]+range < len(self.worldPopulation) and len(self.worldPopulation[obj[0]+range]) >= 1:
+                rightNeighbours.append((obj[0]+range, len(self.worldPopulation[obj[0]+range]) - 1))
+            else:
+                rightNeighbours.append('-')
+                
+            if obj[1]-range > -1:
+                bottomNeighbours.append((obj[0], obj[1]-range))
+            else:
+                bottomNeighbours.append('-')
+        candidatesNeighb.append(leftNeighbours)
+        candidatesNeighb.append(topNeighbours)
+        candidatesNeighb.append(rightNeighbours)
+        candidatesNeighb.append(bottomNeighbours)
+        return candidatesNeighb
+            
         
+    def cleanCandidates(self, objCandidates, answer, difference, value):
+        newCandidates = []
+        if answer == 'Y':
+            for obj in objCandidates:
+                if obj[difference] == value:
+                    newCandidates.append(obj)
+        else:
+            for obj in objCandidates:
+                if not obj[difference] == value:
+                    newCandidates.append(obj)
+        return newCandidates
+    
+    def askQuestion(self, objDifference, objCandidates):
+        while True:
+            value = objCandidates[0][objDifference]
+            answer = raw_input("Did you mean the " + value +" "+ objCandidates[0][0] + "? (Y/N)").upper()
+            if answer == 'Y' or answer == 'N':
+                break
+        objCandidates = self.cleanCandidates(objCandidates, answer, objDifference, value)
+        return objCandidates
+        #if len(objCandidates) == 1:
+         #   return objCandidates
+        #else:
+         #   self.getObjectDifferences(objCandidates)
+    
+    def getObjectAttributes(self, objects):
+        objList = []
+        oneObject = []
+        for obj in objects:
+            if not obj == "-":
+                object = self.worldPopulation[obj[0]][obj[1]]
+                attr = self.objectsInWorld[object]['form']
+                oneObject.append(attr)
+                object = self.worldPopulation[obj[0]][obj[1]]
+                attr = self.objectsInWorld[object]['size']
+                oneObject.append(attr)
+                object = self.worldPopulation[obj[0]][obj[1]]
+                attr = self.objectsInWorld[object]['color']
+                oneObject.append(attr)
+                objList.append(list(oneObject))
+                del oneObject[:]
+            else:
+                objList.append("-")
+        return objList
+    
+    def getObjectDifferences(self, objects):
+        attributes = ['form', 'size', 'color']
+        i = 0
+        while i < 3:
+            attrList = []
+            for obj in objects:
+                attrList.append(obj[i]);
+            attrList = set(attrList);
+            if len(attrList) > 1:
+                return self.getObjectDifferences(self.askQuestion(i, objects))
+            i = i + 1
+        return objects
         
     def onTop(self, topObject, botObject): 
         ''' Returns true if a given object is on top of another given object.
@@ -98,15 +229,13 @@ class AmbiguityResolver:
         '''
         return math.fabs(object[0]-nextObject[0]) == 1
 
-    def convertToPDDL(self, sourceList, relation, targetList):
-            ''' Takes a list of source objects, a relation and a list of target objects
+    def convertToPDDL(self, source, relation, target):
+            ''' Takes a source object, a relation and a target object
             and converts it into PDDL in order to allow processing by the planner.
-            Creates every possible combination of goals of the two lists.
-            Returns a list of PDDL goals.
+            Returns a PDDL goal.
             '''
-            pddl = []
-           
-            if len(sourceList) > 1 and len(targetList) > 1:
+            return ((relation,source, target))
+            '''if len(sourceList) > 1 and len(targetList) > 1:
                 pddl.append("or")
                 for item in sourceList:
                     for otherItem in targetList:
@@ -122,7 +251,7 @@ class AmbiguityResolver:
                     pddl.append((relation,sourceList[0],item))
             else:
                 pddl.append((relation, sourceList[0], targetList[0]))
-            return pddl
+            return pddl'''
 
 
     
@@ -155,7 +284,6 @@ class AmbiguityResolver:
             Returns a tuple of tuples with coordinates for the matches found.
         '''
         matchingObjects = []
-        #matches = []
         for object in self.objectsInWorld:
             match = True
             if (objectToBeChecked[0] and 
@@ -171,7 +299,6 @@ class AmbiguityResolver:
                 coords = tuple(self.getObjectCoordinates(object))
                 matchingObjects.append(coords)
         matchTuple = tuple(matchingObjects)
-        #matches.append(list(matchingObjects))
         return matchTuple
     
     def handleInput(self, inputList):
@@ -187,23 +314,15 @@ class AmbiguityResolver:
                 source = False
             else:
                 targetList = self.parse(bigList)
-        action = targetList.pop(0)
-        print "Source"
-        print sourceList
+        relation = targetList.pop(0)
         sourceResult = self.resolve(sourceList)
-        print "source result"
-        print sourceResult
-        print targetList
-        print "target result"
         targResult = self.resolve(targetList)
-        print targResult
           ## If the target is the floor, find all the places available on the floor
         if targResult == "floor":
             targResult = self.findPlacesOnTheFloor()
-        pddl = self.convertToPDDL(sourceResult, action, targResult)
-        print "PDDL = "
-        print pddl
-        
+        print (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
+        #pddl = self.convertToPDDL(sourceResult, relation, targResult)
+        return (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
         
     def parse(self, inputList):
         ''' Takes a list from the interpreter and parses it to a format
@@ -213,7 +332,6 @@ class AmbiguityResolver:
         '''
         dummyList = []
         if self.isDone(inputList):
-            #print inputList
             return inputList
         else:
             for innerList in inputList:
@@ -341,8 +459,8 @@ if __name__ == '__main__':
     myMediumWorld = World("medium")
     ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
-    ambMediumSolver.handleInput([[[['the', ['plank', '', '']], [['ontop', [['the', ['table', '', '']], [['rightof', ['the', ['box', '', 'red']]]]]]]], ['ontop', [['the', ['ball', '', 'white']], [['ontop', 'floor']]]]]])
-    #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['ontop', 'floor']]])
+    #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['inside', [['the', ['box', '', '']], [['above', ['the', ['plank', '', '']]]]]]]])
+    ambMediumSolver.handleInput([[['the', ['ball', '', 'black']], ['beside', [['any', ['pyramid', '', '']], [['ontop', 'floor']]]]]])
 
     '''f = ambSmallSolver.getObjectCoordinates("f")
     m = ambSmallSolver.getObjectCoordinates("m")
