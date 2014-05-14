@@ -452,7 +452,7 @@ class World:
         "sbox1":   { "form":"box",     "size":"small",  "color":"red"   },
         "sbox2":   { "form":"box",     "size":"small",  "color":"blue"} }
             
-#if __name__ == '__main__':
+if __name__ == '__main__':
     '''
         This method is purely for testing purposes of the above functions. 
     '''

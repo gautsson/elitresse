@@ -338,49 +338,49 @@ class Planner:
         parentWorld  = node.parent.world
         currentWorld = node.world
         worldLength  = len (parentWorld)
-        cmdString = []
+        list = []
         
-        if not node.holding:
+       # if not node.holding:
+       #    for i in range(0,worldLength):
+       #         if currentWorld[i] < parentWorld[i]:
+       #             cmdString.append("pick " + str(i))
+       #             
+       #         if currentWorld[i] > parentWorld[i]:
+       #             cmdString.append("drop " + str(i))
+       # else:
+
+        
+        parentWorldConcat = [value for sublist in parentWorld for value in sublist]
+        currentWorldConcat = [value for sublist in currentWorld for value in sublist]
+        pickString = ""
+        dropString = ""
+
+        if (len (parentWorldConcat) == len (currentWorldConcat)):
             for i in range(0,worldLength):
                 if currentWorld[i] < parentWorld[i]:
-                    cmdString.append("pick " + str(i))
+                    pickString = "pick " + str(i)
                     
                 if currentWorld[i] > parentWorld[i]:
-                    cmdString.append("drop " + str(i))
-        else:
+                    dropString = "drop " + str(i)
 
-        #
-        #parentWorldConcat = [value for sublist in parentWorld for value in sublist]
-        #currentWorldConcat = [value for sublist in currentWorld for value in sublist]
-        #pickString = ""
-        #dropString = ""
+            list.append(pickString)
+            list.append(dropString) 
+            return (parentNode, list)
 
-        #if (len (parentWorldConcat) == len (currentWorldConcat)):
-        #    for i in range(0,worldLength):
-        #        if currentWorld[i] < parentWorld[i]:
-        #            pickString = "pick " + str(i)
-        #            
-        #        if currentWorld[i] > parentWorld[i]:
-        #            dropString = "drop " + str(i)
-
-        #    list.append(pickString)
-        #    list.append(dropString) 
-        #    return (parentNode, list)
-
-        #elif (len (parentWorldConcat) > len (currentWorldConcat)):
+        elif (len (parentWorldConcat) > len (currentWorldConcat)):
             # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
-        #    changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
-        #    theStack = getObjectStack(changedElement, parentWorld)
-        #    newCommand = "pick " + str(theStack)
-        #    list.append(newCommand)
-        #    return (parentNode, list)
-        #else:
+            changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
+            theStack = getObjectStack(changedElement, parentWorld)
+            newCommand = "pick " + str(theStack)
+            list.append(newCommand)
+            return (parentNode, list)
+        else:
             # This loop gets run if the first command is a drop, i.e. if the arm was holding an object
-        #    changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
-        #    theStack = getObjectStack(changedElement, currentWorld)
-        #    newCommand = "drop " + str(theStack)
-        #    list.append(newCommand)
-        #    return (parentNode, list)
+            changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
+            theStack = getObjectStack(changedElement, currentWorld)
+            newCommand = "drop " + str(theStack)
+            list.append(newCommand)
+            return (parentNode, list)
 
     def movementCost(self, fromNode, toNode):
         fromWorld = fromNode.world
