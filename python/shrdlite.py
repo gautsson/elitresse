@@ -3,11 +3,14 @@
 # Test from the command line:
 # python shrdlite.py < ../examples/medium.json
 
-from __future__ import print_function
+#from __future__ import print_function
 
 import sys
 import json
+import interpret
+import shrd
 import planning
+import ambiguity
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
 
@@ -57,10 +60,15 @@ def parse(utterance):
     except ValueError:
         return []
 
-
 def interpret(tree, world, holding, objects):
     #return [True]
     return ["take,k"]
+#def interpret(tree, world, holding, objects):
+#    interpreter = interpret.Interpreter()
+    #print interpreter.
+#    ambiguityResolver = ambiquity.AmbiquityResolver()
+    
+    #return ["put,onTop,f"]
 
 #col = list(map(bool, world)).index(True)
 #return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
@@ -103,9 +111,21 @@ def main(utterance, world, holding, objects, **_):
 
 
 if __name__ == '__main__':
-    input = json.load(sys.stdin)
-    output = main(**input)
-    # json.dump(output, sys.stdout)
-    # json.dump(output, sys.stdout, sort_keys=True, indent=4)
-    print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
-                            for (k, v) in output.items()), "}")
+    world = [["e"],["g","l"],[],["k","m","f"],[]]
+    worldSize = "small"
+
+    utterance = shrd.getInput()
+    parse_trees = parse(utterance)
+    
+    x = interpret.I
+    goals = x.interpret(parse_trees)
+    
+    ambiguityResolver = AmbiguityResolver(worldSize)
+
+    #planner = planning.Planner()
+    #input = json.load(sys.stdin)
+    #output = main(**input)
+    #json.dump(output, sys.stdout)
+    #json.dump(output, sys.stdout, sort_keys=True, indent=4)
+    #print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
+    #                        for (k, v) in output.items()), "}")
