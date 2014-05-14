@@ -60,7 +60,7 @@ def parse(utterance):
 
 def interpret(tree, world, holding, objects):
     #return [True]
-    return ["put,onTop,f"]
+    return ["take,k"]
 
 #col = list(map(bool, world)).index(True)
 #return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
@@ -72,7 +72,7 @@ def interpret(tree, world, holding, objects):
 #return planning.test()
     
 def solve(goal, world, holding, objects): 
-    holding = "e"
+    #holding = "e"
     planner = planning.Planner(world, holding, objects)
     pickAndDrop = planner.startPlanning(goal)
     return pickAndDrop

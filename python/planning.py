@@ -8,6 +8,7 @@ class Planner:
         self.startWorld = world
         self.holding = holding
         self.objects = objects
+        self.commandString = []
 
       #  print gc.isenabled()
     #
@@ -131,15 +132,18 @@ class Planner:
         
         elif command == "take":
             object = goalList[1]
-
+            
             if self.holding:
                 if self.holding == object:
                     return ["I am already holding the object"]
                 else:
-                    self.search(goal)
+                   return self.search(goal)
             else:
                 self.holding = self.pick(self.startWorld, [stack for stack in range(len(self.startWorld)) if stack not in emptyStacks][0])
-                self.search(goal)
+                
+                self.commandString.append("pick " + str(emptyStacks[0]))
+
+                return self.search(goal)
         
         elif command == "put":
             relation = goalList[1]
@@ -149,17 +153,25 @@ class Planner:
             
             #if preConstraintCheck(sourceObject, targetObject):
             
-            print goal
+            # print goal
             if not emptyStacks:
-                print "1"
+                # print "1"
                 for stack in len(self.startWorld):
                     if self.drop(self.startWorld, stack, self.holding):
+                        self.holding = ""
+                        self.commandString.append("drop " + str(stack))
                         return self.search(goal)
                     
             else:
-                print "2"
+                # print "2"
+                # print self.startWorld
+                # print self.holding
                 self.drop(self.startWorld, emptyStacks[0], self.holding)
-                print self.startWorld
+                self.holding = ""
+                self.commandString.append("drop " + str(emptyStacks[0]))
+                # print self.commandString
+                # print self.startWorld
+                # print self.holding
                 return self.search(goal)
         
     def preConstraintCheck(self, relation, sourceObject, targetObject):
@@ -187,12 +199,15 @@ class Planner:
         heappush(openSet, startTuple)
 
         while openSet != []:
-            #for node in openSet:
-            #    val, node = node
-            #    print node.world
+            # print "openSet"
+            for node in openSet:
+                val, node = node
+                # print node.world
             currentNode = heappop(openSet)[1]
 
             if (self.isGoal(currentNode.world, goal)):
+                #print (self.isGoal(currentNode.world, goal))
+                #print self.reconstructPath(currentNode, list())
                 return self.reconstructPath(currentNode, list())
 
             closedSet.append(currentNode)
@@ -249,19 +264,19 @@ class Planner:
         
         if command == "take":
             for dropStack in [stack for stack in range (len(self.startWorld))]:        
-                for pickStack in [stack for stack in range (len(self.startWorld)) if not stack == dropStack]:
+                for pickStack in [stack for stack in range (len(self.startWorld)) if (not stack == dropStack) and (len (node.world[stack]) > 0)]:
                     neighborNode = deepcopy(node)
-                    yugff
-                    if not self.drop(neighborNode.world, dropStack, self.holding):
+                    
+                    object = self.holding
+                    if not self.drop(neighborNode.world, dropStack, object):
                         continue
                     
-                    tryHolding = self.pick(neighborNode.world, pickStack)
+                    self.holding = self.pick(neighborNode.world, pickStack)
                     
-                    if tryHolding == None:
-                        continue
-                    else:
-                        self.holding = tryHolding
-
+                    # print "neighbor world"
+                    # print neighborNode.world
+                    # print "holding"
+                    # print self.holding
                     neighbors.append(neighborNode)
         
         elif command == "move":
@@ -328,12 +343,13 @@ class Planner:
             
             return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0]))) * (len(self.startWorld) / 5)
 
-    def reconstructPath(self, node, commandString):
+    def reconstructPath(self, node, cmdString):
         if node.parent == None: # Base case
-            return commandString
+            return self.commandString + cmdString
         else:
             parentNode, command = self.parseNode(node)
-            return self.reconstructPath(parentNode, command + commandString)
+            cmdString = command + cmdString
+            return self.reconstructPath(parentNode, cmdString)
 
     def parseNode(self, node):  
         parentNode = node.parent
@@ -394,16 +410,18 @@ class Planner:
         goalList = goal.split(",")
         command = goalList[0]
         
-        print "world"
-        print  world
-        print "holding"
-        print self.holding
+        #print "world"
+        #print  world
+        #print "holding"
+        #print self.holding
 
         if command == "take":
-            sourceObject = goalList[1]
-            sourceObjectLocation = self.getLocation(world, sourceObject)
-
-            return not sourceObjectLocation
+            # print  goalList[1]
+            # print self.holding
+            # print world
+            return self.holding == goalList[1]
+            
+            #return not sourceObjectLocation
         elif command == "move":
             relation = goalList[1]
             sourceObject = goalList[2]
@@ -455,8 +473,9 @@ class Planner:
 
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
-        # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
-    world = [["e"],[],[],["k"]]
+    # small = [["e"],["g","l"],[],["k","m","f"],[]]
+    # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
+    world = [["e"],["g","l"],[],["k","m","f"],[]]
     objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
     "b": { "form":"brick",   "size":"small",  "color":"white" },
@@ -473,11 +492,11 @@ if __name__ == '__main__':
     "m": { "form":"box",     "size":"small",  "color":"blue"  }
     }
 
-    goal = "take,k"
+    goal = "take,f"
     planner = Planner(world, "", objects)
     #print planner.pick(world, 0)
-   #print world[0]
-#    print planner.heuristic_cost_estimate(world, goal)
+    #print world[0]
+    #print planner.heuristic_cost_estimate(world, goal)
     print planner.startPlanning(goal)
         #print planner.search(goal)
         #goal = "above,e,j" 
