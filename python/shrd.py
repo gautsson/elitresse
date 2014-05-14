@@ -8,9 +8,11 @@ def getInput():
     
 if __name__ == '__main__':
     utterance = getInput()
-    parse_trees = shrdlite.parse(utterance)
-    print parse_trees
+    #parse_trees = shrdlite.parse(utterance)
+    #print parse_trees
     
-    x = interpret.Interpreter()
+    print utterance
+
+    #x = interpret.Interpreter()
     #THIS IS THE EXPERIMENTATION
-    goals = x.interpret(parse_trees)
+    #goals = x.interpret(parse_trees)
