@@ -38,6 +38,7 @@ class Planner:
 
         def applyRules(self, objectId, stackObjectId):
             object = self.objects[objectId]
+            print object
             stackObject = self.objects[stackObjectId]
 
             for rule in self.ruleList:
@@ -328,7 +329,7 @@ class Planner:
         if node.parent == None: # Base case
             return self.commandString + cmdString
         else:
-            print node.world
+            # print node.world
             parentNode, command = self.parseNode(node)
             cmdString           = command + cmdString
             return self.reconstructPath(parentNode, cmdString)
@@ -408,8 +409,8 @@ class Planner:
         #print self.holding
 
         if command == "take":
-            print "goal"
-            print node.world
+            # print "goal"
+            # print node.world
             print node.holding
             return node.holding == goalList[1]
         elif command == "move":
@@ -482,12 +483,17 @@ if __name__ == '__main__':
     "m": { "form":"box",     "size":"small",  "color":"blue"  }
     }
 
-    goal = "take,k"
+    goal = "move,onTop,e,k"
     planner = Planner(world, "", objects)
     #print planner.pick(world, 0)
     #print world[0]
     #print planner.heuristic_cost_estimate(world, goal)
-    print planner.startPlanning(goal)
+    #print planner.startPlanning(goal)
         #print planner.search(goal)
         #goal = "above,e,j" 
         #test = self.isGoal(medium,goal) 
+    sourceObject = "e"
+    targetObject = "k"
+    rules = Rules(objects)
+    a = rules.applyRules(sourceObject, targetObject)
+    print a

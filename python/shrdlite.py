@@ -75,9 +75,9 @@ def interpret(tree, world, holding, objects):
 #return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
 #return ["pick 1", "drop 2"]
 #return ["I do as you tell me"] + pickAndDrop
-#goal = ["onTop,c,a"]
-#return planning.performMove(goal, world)
-#return planning.test()
+# goal = ["onTop,c,a"]
+# return planning.performMove(goal, world)
+# return planning.test()
     
 def solve(goal, world, holding, objects): 
     #holding = "e"
@@ -111,16 +111,52 @@ def main(utterance, world, holding, objects, **_):
 
 
 if __name__ == '__main__':
+    # goal = "move,onTop,e,k"
     world = [["e"],["g","l"],[],["k","m","f"],[]]
     worldSize = "small"
+    holding = ""
+    objects = {
+    "a": { "form":"brick",   "size":"large",  "color":"green" },
+    "b": { "form":"brick",   "size":"small",  "color":"white" },
+    "c": { "form":"plank",   "size":"large",  "color":"red"   },
+    "d": { "form":"plank",   "size":"small",  "color":"green" },
+    "e": { "form":"ball",    "size":"large",  "color":"white" },
+    "f": { "form":"ball",    "size":"small",  "color":"black" },
+    "g": { "form":"table",   "size":"large",  "color":"blue"  },
+    "h": { "form":"table",   "size":"small",  "color":"red"   },
+    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    "k": { "form":"box",     "size":"large",  "color":"yellow"},
+    "l": { "form":"box",     "size":"large",  "color":"red"   },
+    "m": { "form":"box",     "size":"small",  "color":"blue"  }
+    }
 
-    utterance = shrd.getInput()
-    parse_trees = parse(utterance)
+
+    result = {}
+    utterance = "put the white ball inside the red box".split()
+    result['utterance'] = utterance
+    trees = parse(utterance)
+    result['trees'] = [str(t) for t in trees]
+    print [str(t) for t in trees]
+    print [tree for tree in trees]
+    print [tree for tree in trees][0]
+    result['goals'] = goals = [goal for tree in trees
+                               for goal in interpret(tree, world, holding, objects)]
+    print goals
+
+    # goal = "move,onTop,e,k"
+   
+    # planner = planning.Planner(world, holding, objects)
+    # pickAndDrop = planner.startPlanning(goal)
+    # print pickAndDrop
+
+    # utterance = shrd.getInput()
+    # parse_trees = parse(utterance)
     
-    x = interpret.I
-    goals = x.interpret(parse_trees)
+    # x = interpret.I
+    # goals = x.interpret(parse_trees)
     
-    ambiguityResolver = AmbiguityResolver(worldSize)
+    # ambiguityResolver = AmbiguityResolver(worldSize)
 
     #planner = planning.Planner()
     #input = json.load(sys.stdin)

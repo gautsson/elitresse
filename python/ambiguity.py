@@ -85,7 +85,8 @@ class AmbiguityResolver:
             while neighb < len(neighbourObjects[dir]):
                 if neighbourObjects[dir].count(neighbourObjects[dir][neighb]) == 1 and not neighbourObjects[dir][neighb] == "-":
                     while True:
-                        answer = raw_input("Do you mean the "+ duplicateObject[2]+ " "+ duplicateObject[1]+ " "+ duplicateObject[0]+ " that is the closest "+
+                        answer = raw_input("Do you mean the "+ duplicateObject[2]+ " "+ duplicateObject[1]+ " "+ duplicateObject[0]
+                            + " that is the closest "+
                             direction[dir]+ " "+ neighbourObjects[dir][neighb][2]+ " "+ neighbourObjects[dir][neighb][1]+
                                                      " "+ neighbourObjects[dir][neighb][0]+ " ? (Y/N)").upper()
                         if answer == "Y":

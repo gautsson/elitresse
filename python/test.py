@@ -1,6 +1,7 @@
-import nltk
-grammar = nltk.data.load("file:shrdlite_grammar.fcfg", cache=False)
-parser = nltk.FeatureTopDownChartParser(grammar)
-sentence = "put the white ball in a box on the floor".split()
-for tree in parser.nbest_parse(sentence): 
-    print tree.label()['sem']
+import planning
+import ambiguity
+import planning
+
+if __name__ == '__main__':
+    tuple = (move, (basic_entity, the, (object, ball, -, white)), (relative, inside, (basic_entity, the, (object, box, -, red))))
+    print tuple
