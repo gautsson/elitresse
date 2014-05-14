@@ -62,20 +62,8 @@ def parse(utterance):
 
 
 def interpret(tree, world, holding, objects):
-    #interpreter = interpreting.Interpreter()
-    #print (tree)
-    #goals1 = interpreter.interpret(tree)
-    #print ("interp")
-    #print (goals1)
-    #ambiguityResolver = ambiguity.AmbiguityResolver(world, objects)
-    #goal2 = ambiguityResolver.handleInput(goals1)
     
-    #goal2 = ("move",) + goal2
-    #goal2 = list(goal2)
-    #goal2 = [','.join(goal2)]
-    #print(goal2)
-    #return goal2
-    return ["move,onTop,e,k"]
+    return ["put,onTop,floor"]
 
 
 def solve(goal, world, holding, objects):
@@ -87,8 +75,8 @@ def main(utterance, world, holding, objects, **_):
     result = {}
     result['utterance'] = utterance
     trees = parse(utterance)
+
     result['trees'] = [str(t) for t in trees]
-    print (result['trees'])
     if not trees:
         result['output'] = "Parse error!"
         return result
@@ -110,35 +98,40 @@ def main(utterance, world, holding, objects, **_):
 
 
 if __name__ == '__main__':
-    utterance1 = "put the large white ball in the red box"
-    utterance = utterance1.split()
-    interpreter = interpreting.Interpreter()
+    #utterance1 = "put the large white ball in the red box"
+    #utterance = utterance1.split()
     
-    goals1 = interpreter.interpret(tree)
+    #goals1 = interpreter.interpret(tree)
     
-    world = [["e"],["g","l"],[],["k","m","f"],[]]
-    objects = {
-    "a": { "form":"brick",   "size":"large",  "color":"green" },
-    "b": { "form":"brick",   "size":"small",  "color":"white" },
-    "c": { "form":"plank",   "size":"large",  "color":"red"   },
-    "d": { "form":"plank",   "size":"small",  "color":"green" },
-    "e": { "form":"ball",    "size":"large",  "color":"white" },
-    "f": { "form":"ball",    "size":"small",  "color":"black" },
-    "g": { "form":"table",   "size":"large",  "color":"blue"  },
-    "h": { "form":"table",   "size":"small",  "color":"red"   },
-    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
-    "k": { "form":"box",     "size":"large",  "color":"yellow"},
-    "l": { "form":"box",     "size":"large",  "color":"red"   },
-    "m": { "form":"box",     "size":"small",  "color":"blue"  }
-    }
-    holding = ""
+    #world = [["e"],["g","l"],[],["k","m","f"],[]]
+    #objects = {
+    #"a": { "form":"brick",   "size":"large",  "color":"green" },
+    #"b": { "form":"brick",   "size":"small",  "color":"white" },
+    #"c": { "form":"plank",   "size":"large",  "color":"red"   },
+    #"d": { "form":"plank",   "size":"small",  "color":"green" },
+    #"e": { "form":"ball",    "size":"large",  "color":"white" },
+    #"f": { "form":"ball",    "size":"small",  "color":"black" },
+    #"g": { "form":"table",   "size":"large",  "color":"blue"  },
+    #"h": { "form":"table",   "size":"small",  "color":"red"   },
+    #"i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    #"j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    #"k": { "form":"box",     "size":"large",  "color":"yellow"},
+    #"l": { "form":"box",     "size":"large",  "color":"red"   },
+    #"m": { "form":"box",     "size":"small",  "color":"blue"  }
+    #}
+    #holding = ""
 
+    #)
+    #result = (main(utterance, world, holding, objects))
+    
+    #print (result['trees'])
 
-    #input = json.load(sys.stdin)
-    print (main(utterance, world, holding, objects))
-    #output = main(**input)
+    #for tree in result ['trees']:
+    #    print (type(tree))       
+    #    print (tree)
+    input = json.load(sys.stdin)
+    output = main(**input)
     # json.dump(output, sys.stdout)
     # json.dump(output, sys.stdout, sort_keys=True, indent=4)
-    #print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
-     #                       for (k, v) in output.items()), "}")
+    print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
+                           for (k, v) in output.items()), "}")

@@ -3,8 +3,6 @@ Module containing all the classes and related functions to the
 interpretation and semantic analysis of the parse_trees. 
 """
 
-
-
 class Interpreter:
     
     """
@@ -16,10 +14,7 @@ class Interpreter:
     def __init__(self):
         pass     
 
-    def printOut():
-        return "hello"
-
-    def interpret(self, parseTree):
+    def interpretParseTree(self, parseTree):
         """
         Takes a set of parse_trees and returns a set of goals in
         PDDL-like format
@@ -27,24 +22,25 @@ class Interpreter:
         Arguments: parse_trees
         Returns:   goals in PDDL-like format
         """
-        
+
+       
         goal = list()
         
         command = parseTree[0]
         
         if command == "take":
             entity = parseTree[1]
-            goals.append([self.interpretEntity(entity)])
+            goal.append([self.interpretEntity(entity)])
             
         elif command == "put":
             location = parseTree[1]
-            goals.append([self.interpretLocation(location)])
+            goal.append([self.interpretLocation(location)])
                 
         elif command == "move":
             entity   = parseTree[1]
             location = parseTree[2]
                 
-            goals.append([self.interpretEntity(entity), self.interpretLocation(location)])   
+            goal.append([self.interpretEntity(entity), self.interpretLocation(location)])   
         return goal
         
     def interpretEntity(self, entity):
