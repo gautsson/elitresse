@@ -125,17 +125,31 @@ class Planner:
         elif command == "take":
             object = goalList[1]
             
-            if self.holding:
-                if self.holding == object:
-                    return ["I am already holding the object"]
-                else:
+            pickObjectStack = self.pickFunctionCheck(self.startWorld, object)
+            
+            if not pickObjectStack == None:
+                return ["pick " + str(pickObjectStack)]
+            else: 
+                if self.holding:
+                    if self.holding == object:
+                       # print self.holding
+                        return ["I am already holding the object"]
+                    else:
+                        if not emptyStacks:
+                            for stack in len(self.startWorld):
+                                if self.drop(self.startWorld, stack, self.holding):
+                                    self.holding = ""
+                                    self.commandString.append("drop " + str(stack))
+                            return self.search(goal)
+                    
+                        else:
+                            self.drop(self.startWorld, emptyStacks[0], self.holding)
+                            self.holding = ""
+                            self.commandString.append("drop " + str(emptyStacks[0]))
+           
+                        return self.search(goal)
+                else:         
                     return self.search(goal)
-            else:
-                self.holding = self.pick(self.startWorld, [stack for stack in range(len(self.startWorld)) if stack not in emptyStacks][0])
-                
-                self.commandString.append("pick " + str(emptyStacks[0]))
-                
-                return self.search(goal)
         
         elif command == "put":
             relation = goalList[1]
@@ -187,11 +201,19 @@ class Planner:
             currentNode = heappop(openSet)[1]
 
             if (self.isGoal(currentNode, goal)):
-                return self.reconstructPath(currentNode, list())
+                goalList = goal.split(",")
+                path = self.reconstructPath(currentNode, list())
+                pickObjectStack = self.pickFunctionCheck(currentNode.world, goalList[1])
+                
+                if command == "take":
+                    path.append("pick " + str(pickObjectStack))
+                    return path
+                else:
+                    return path
 
             closedSet.append(currentNode)
 
-            for neighbor in self.performMove(currentNode, command):
+            for neighbor in self.performMove(currentNode):
                 cost = currentNode.g + self.movementCost(currentNode, neighbor)      
 
                 nodeInOpenSet = self.isNodeInOpenSet(openSet, neighbor)
@@ -238,41 +260,21 @@ class Planner:
 # 1 correponds to do a pick command
 # 2 corresponds to do a drop command
 
-    def performMove(self, node, command):
+    def performMove(self, node):
         neighbors = list()
         
-        if command == "take":
-            for dropStack in [stack for stack in range (len(self.startWorld))]:        
-                for pickStack in [stack for stack in range (len(self.startWorld)) if (not stack == dropStack) and (len (node.world[stack]) > 0)]:
-                    neighborNode = deepcopy(node)
-                    
-                    heldObject = neighborNode.holding
-                    
-                    if not self.drop(neighborNode.world, dropStack, heldObject):
-                        continue
-                
-                    pickedObject = self.pick(neighborNode.world, pickStack)
-                    
-                    if pickedObject == None:
-                        continue
-                    else:
-                        neighborNode.holding = pickedObject
+        for pickStack in [stack for stack in range (len(node.world)) if (len (node.world[stack]) > 0)]:        
+            for dropStack in [stack for stack in range (len(self.startWorld)) if not stack == pickStack]:
+                neighborNode = deepcopy(node)
+                pickedObject = self.pick(neighborNode.world, pickStack)
 
-                    neighbors.append(neighborNode)
-        
-        elif command == "move":
-            for pickStack in [stack for stack in range (len(node.world)) if (len (node.world[stack]) > 0)]:        
-                for dropStack in [stack for stack in range (len(self.startWorld)) if not stack == pickStack]:
-                    neighborNode = deepcopy(node)
-                    pickedObject = self.pick(neighborNode.world, pickStack)
+                if (pickedObject == None):
+                    continue
 
-                    if (pickedObject == None):
-                        continue
-
-                    if not self.drop(neighborNode.world, dropStack, object):
-                        continue
+                if not self.drop(neighborNode.world, dropStack, pickedObject):
+                    continue
                     
-                    neighbors.append(neighborNode)
+                neighbors.append(neighborNode)
 
         return neighbors    
     
@@ -319,16 +321,15 @@ class Planner:
             objA = goalList[2]
             objB = goalList[3]
 
-            locA = self.getLocation(world, objA)
-            locB = self.getLocation(world, objB)
+            locA = self.getLocation(node.world, objA)
+            locB = self.getLocation(node.world, objB)
             
-            return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0]))) * (len(self.startWorld) / 5)
+            return abs((locA[1] - self.getStackHeight(node.world, locA[0])) + (locB[1] - self.getStackHeight(node.world, locB[0]))) * (len(self.startWorld) / 5)
 
     def reconstructPath(self, node, cmdString):
         if node.parent == None: # Base case
             return self.commandString + cmdString
         else:
-            print node.world
             parentNode, command = self.parseNode(node)
             cmdString           = command + cmdString
             return self.reconstructPath(parentNode, cmdString)
@@ -338,16 +339,16 @@ class Planner:
         parentWorld  = node.parent.world
         currentWorld = node.world
         worldLength  = len (parentWorld)
-        cmdString = []
+        list = []
         
-        if not node.holding:
-            for i in range(0,worldLength):
-                if currentWorld[i] < parentWorld[i]:
-                    cmdString.append("pick " + str(i))
-                    
-                if currentWorld[i] > parentWorld[i]:
-                    cmdString.append("drop " + str(i))
-        else:
+       # if not node.holding:
+       #    for i in range(0,worldLength):
+       #         if currentWorld[i] < parentWorld[i]:
+       #             cmdString.append("pick " + str(i))
+       #             
+       #         if currentWorld[i] > parentWorld[i]:
+       #             cmdString.append("drop " + str(i))
+       # else:
 
         
         parentWorldConcat = [value for sublist in parentWorld for value in sublist]
@@ -356,31 +357,31 @@ class Planner:
         dropString = ""
 
         if (len (parentWorldConcat) == len (currentWorldConcat)):
-           for i in range(0,worldLength):
-               if currentWorld[i] < parentWorld[i]:
-                   pickString = "pick " + str(i)
-                   
-               if currentWorld[i] > parentWorld[i]:
-                   dropString = "drop " + str(i)
+            for i in range(0,worldLength):
+                if currentWorld[i] < parentWorld[i]:
+                    pickString = "pick " + str(i)
+                    
+                if currentWorld[i] > parentWorld[i]:
+                    dropString = "drop " + str(i)
 
-           list.append(pickString)
-           list.append(dropString) 
-           return (parentNode, list)
+            list.append(pickString)
+            list.append(dropString) 
+            return (parentNode, list)
 
         elif (len (parentWorldConcat) > len (currentWorldConcat)):
-            This loop gets run if the last command is pick, i.e. the arm ends up holding an object
-           changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
-           theStack = getObjectStack(changedElement, parentWorld)
-           newCommand = "pick " + str(theStack)
-           list.append(newCommand)
-           return (parentNode, list)
+            # This loop gets run if the last command is pick, i.e. the arm ends up holding an object
+            changedElement = (set(parentWorldConcat) - set(currentWorldConcat)).pop()
+            theStack = getObjectStack(changedElement, parentWorld)
+            newCommand = "pick " + str(theStack)
+            list.append(newCommand)
+            return (parentNode, list)
         else:
-            This loop gets run if the first command is a drop, i.e. if the arm was holding an object
-           changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
-           theStack = getObjectStack(changedElement, currentWorld)
-           newCommand = "drop " + str(theStack)
-           list.append(newCommand)
-           return (parentNode, list)
+            # This loop gets run if the first command is a drop, i.e. if the arm was holding an object
+            changedElement = (set(currentWorldConcat) - set(parentWorldConcat)).pop()
+            theStack = getObjectStack(changedElement, currentWorld)
+            newCommand = "drop " + str(theStack)
+            list.append(newCommand)
+            return (parentNode, list)
 
     def movementCost(self, fromNode, toNode):
         fromWorld = fromNode.world
@@ -402,16 +403,9 @@ class Planner:
         goalList = goal.split(",")
         command = goalList[0]
         
-        #print "world"
-        #print  world
-        #print "holding"
-        #print self.holding
-
         if command == "take":
-            print "goal"
-            print node.world
-            print node.holding
-            return node.holding == goalList[1]
+            return self.isTargetObjectOnTop(goalList[1], node.world)
+        
         elif command == "move":
             relation = goalList[1]
             sourceObject = goalList[2]
@@ -420,7 +414,11 @@ class Planner:
             targetObjectLocation = self.getLocation(node.world, targetObject)
 
             if relation == "onTop" or relation == "inside":
-                return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1
+                if targetObject == "floor":
+                    coordinates = self.getLocation(node.world, sourceObject) 
+                    return coordinates[1] == 0
+                else:
+                    return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] == targetObjectLocation[1] + 1     
             elif relation == "above":
                 return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] > targetObjectLocation[1]
             elif relation == "under":
@@ -431,7 +429,6 @@ class Planner:
                 return sourceObjectLocation[0] < targetObjectLocation[0]
             elif relation == "rightOf":
                 return sourceObjectLocation[0] > targetObjectLocation[0]
-
     # Utility functions, remove these functions
     def getWorldLength(self, world):
         return len(world)
@@ -446,6 +443,9 @@ class Planner:
         return self.objects[object]
 
     def getLocation(self, world, object): 
+        if object == "floor":
+            return (0, 0)
+
         for column in range(self.getWorldLength(world)):
             for row in range(self.getStackHeight(world, column)):
                 if object == self.getObject(world, column, row):
@@ -459,12 +459,38 @@ class Planner:
                 x.append(stack)
         return x
 
+    # Gets the top objects on the stacks which are in the world
+    def getTopObject(self, world):
+        balls = []
+        for object in world:
+            if object != []:
+                balls.append(object[-1])
+            else:
+                balls.append([])
+        return balls
+
+# Checks whether the target object is on top of a stack or not
+    def pickFunctionCheck(self, world, pickObject):
+        topList = self.getTopObject(world)
+        if pickObject in topList:
+            return self.getLocation(world, pickObject)[0]
+        else:
+            return None
+
+    # Checks whether the target object is on top of a stack or not
+    def isTargetObjectOnTop(self, targetObject, world):
+        topList = self.getTopObject(world)
+        if targetObject in topList:
+            return True
+        else:
+            return False
+
     
 
 if __name__ == '__main__':
     #print reconstructPath(node9, [])
-    # small = [["e"],["g","l"],[],["k","m","f"],[]]
-    # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
+    small = [["e"],["g","l"],[],["k","m","f"],[]]
+    medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
     world = [["e"],[],["k"]]
     objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
@@ -482,12 +508,16 @@ if __name__ == '__main__':
     "m": { "form":"box",     "size":"small",  "color":"blue"  }
     }
 
-    goal = "take,k"
-    planner = Planner(world, "", objects)
-    #print planner.pick(world, 0)
+    goal = "take,m"
+    planner = Planner(medium, "m", objects)
+    
+    
+    #print planner.startPlanning(goal)
+
     #print world[0]
     #print planner.heuristic_cost_estimate(world, goal)
-    print planner.startPlanning(goal)
+    
         #print planner.search(goal)
         #goal = "above,e,j" 
         #test = self.isGoal(medium,goal) 
+

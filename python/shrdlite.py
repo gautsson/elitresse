@@ -7,7 +7,10 @@ from __future__ import print_function
 
 import sys
 import json
+import interpreting
 import planning
+import ambiguity
+
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
 
@@ -59,28 +62,20 @@ def parse(utterance):
 
 
 def interpret(tree, world, holding, objects):
-    #return [True]
-    return ["take,k"]
-
-#col = list(map(bool, world)).index(True)
-#return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
-#return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
-#return ["pick 1", "drop 2"]
-#return ["I do as you tell me"] + pickAndDrop
-#goal = ["onTop,c,a"]
-#return planning.performMove(goal, world)
-#return planning.test()
     
-def solve(goal, world, holding, objects): 
-    #holding = "e"
+    return ["put,onTop,floor"]
+
+
+def solve(goal, world, holding, objects):
     planner = planning.Planner(world, holding, objects)
     pickAndDrop = planner.startPlanning(goal)
     return pickAndDrop
-    
+
 def main(utterance, world, holding, objects, **_):
     result = {}
     result['utterance'] = utterance
     trees = parse(utterance)
+
     result['trees'] = [str(t) for t in trees]
     if not trees:
         result['output'] = "Parse error!"
@@ -103,9 +98,41 @@ def main(utterance, world, holding, objects, **_):
 
 
 if __name__ == '__main__':
+    #utterance1 = "put the large white ball in the red box"
+    #utterance = utterance1.split()
+    
+    #goals1 = interpreter.interpret(tree)
+    
+    #world = [["e"],["g","l"],[],["k","m","f"],[]]
+    #objects = {
+    #"a": { "form":"brick",   "size":"large",  "color":"green" },
+    #"b": { "form":"brick",   "size":"small",  "color":"white" },
+    #"c": { "form":"plank",   "size":"large",  "color":"red"   },
+    #"d": { "form":"plank",   "size":"small",  "color":"green" },
+    #"e": { "form":"ball",    "size":"large",  "color":"white" },
+    #"f": { "form":"ball",    "size":"small",  "color":"black" },
+    #"g": { "form":"table",   "size":"large",  "color":"blue"  },
+    #"h": { "form":"table",   "size":"small",  "color":"red"   },
+    #"i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    #"j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    #"k": { "form":"box",     "size":"large",  "color":"yellow"},
+    #"l": { "form":"box",     "size":"large",  "color":"red"   },
+    #"m": { "form":"box",     "size":"small",  "color":"blue"  }
+    #}
+    #holding = ""
+
+    #)
+    #result = (main(utterance, world, holding, objects))
+    
+    #print (result['trees'])
+
+    #for tree in result ['trees']:
+    #    print (type(tree))       
+    #    print (tree)
     input = json.load(sys.stdin)
     output = main(**input)
     # json.dump(output, sys.stdout)
     # json.dump(output, sys.stdout, sort_keys=True, indent=4)
     print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
-                            for (k, v) in output.items()), "}")
+                           for (k, v) in output.items()), "}")
+
