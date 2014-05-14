@@ -269,7 +269,7 @@ class Planner:
                     if (pickedObject == None):
                         continue
 
-                    if not self.drop(neighborNode.world, dropStack, object):
+                    if not self.drop(neighborNode.world, dropStack, pickedObject):
                         continue
                     
                     neighbors.append(neighborNode)
@@ -319,16 +319,15 @@ class Planner:
             objA = goalList[2]
             objB = goalList[3]
 
-            locA = self.getLocation(world, objA)
-            locB = self.getLocation(world, objB)
+            locA = self.getLocation(node.world, objA)
+            locB = self.getLocation(node.world, objB)
             
-            return abs((locA[1] - self.getStackHeight(world, locA[0])) + (locB[1] - self.getStackHeight(world, locB[0]))) * (len(self.startWorld) / 5)
+            return abs((locA[1] - self.getStackHeight(node.world, locA[0])) + (locB[1] - self.getStackHeight(node.world, locB[0]))) * (len(self.startWorld) / 5)
 
     def reconstructPath(self, node, cmdString):
         if node.parent == None: # Base case
             return self.commandString + cmdString
         else:
-            print node.world
             parentNode, command = self.parseNode(node)
             cmdString           = command + cmdString
             return self.reconstructPath(parentNode, cmdString)
@@ -408,9 +407,6 @@ class Planner:
         #print self.holding
 
         if command == "take":
-            print "goal"
-            print node.world
-            print node.holding
             return node.holding == goalList[1]
         elif command == "move":
             relation = goalList[1]
@@ -465,7 +461,7 @@ if __name__ == '__main__':
     #print reconstructPath(node9, [])
     # small = [["e"],["g","l"],[],["k","m","f"],[]]
     # medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]
-    world = [["e"],[],["k"]]
+    #world = [["e"],[],["k"]]
     objects = {
     "a": { "form":"brick",   "size":"large",  "color":"green" },
     "b": { "form":"brick",   "size":"small",  "color":"white" },
@@ -482,12 +478,12 @@ if __name__ == '__main__':
     "m": { "form":"box",     "size":"small",  "color":"blue"  }
     }
 
-    goal = "take,k"
-    planner = Planner(world, "", objects)
+    #goal = "move,onTop,e,k"
+    #planner = Planner(world, "", objects)
     #print planner.pick(world, 0)
     #print world[0]
     #print planner.heuristic_cost_estimate(world, goal)
-    print planner.startPlanning(goal)
+    #print planner.startPlanning(goal)
         #print planner.search(goal)
         #goal = "above,e,j" 
         #test = self.isGoal(medium,goal) 

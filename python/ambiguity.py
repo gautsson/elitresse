@@ -3,13 +3,12 @@ import random
 
 class AmbiguityResolver:
     
-    def __init__(self, world):
+    def __init__(self, world, objects):
         ''' Takes a world object.
         '''
-        self.world = world
-        self.objectsInWorld = world.worldObjects
-        self.worldPopulation = world.population
-        
+        self.worldPopulation = world
+        self.objectsInWorld = objects  
+
     def filterElements(self, objectList, relation, otherObjectList):
         ''' Takes 2 lists of possible marching objects for 2 object description and 
             the spatial relation between them and returns just those coordinates that
@@ -40,8 +39,6 @@ class AmbiguityResolver:
             match with the spatial description
         '''
         quantifiers = ["any", "the", "all"]
-            ## Reverse the list
-        parsedList[::-1]
             ## Save the first object in the reversed list, which is the last object of reference for the main object
         quantifier = ""
         relObj = parsedList.pop()
@@ -75,7 +72,10 @@ class AmbiguityResolver:
                        
         elif quantifier == "any" or quantifier == "all":
             return relObj[random.randrange(0, len(relObj)-1, 1)]
-        return relObj[0]
+        if len(relObj) < 1:
+            return -1
+        else:
+            return relObj[0]
     
     def selectByNeighbour(self, neighbourObjects, duplicateObject):
         direction = ["to the right of a", "below a", "to the left of a", "above a"]
@@ -320,7 +320,9 @@ class AmbiguityResolver:
           ## If the target is the floor, find all the places available on the floor
         if targResult == "floor":
             targResult = self.findPlacesOnTheFloor()
-        print (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
+        if sourceResult == -1 or targResult == -1:
+            return -1
+        #print (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
         #pddl = self.convertToPDDL(sourceResult, relation, targResult)
         return (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
         

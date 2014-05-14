@@ -3,14 +3,14 @@
 # Test from the command line:
 # python shrdlite.py < ../examples/medium.json
 
-#from __future__ import print_function
+from __future__ import print_function
 
 import sys
 import json
-import interpret
-import shrd
+import interpreting
 import planning
 import ambiguity
+
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
 
@@ -61,33 +61,34 @@ def parse(utterance):
         return []
 
 
-#def interpret(tree, world, holding, objects):
-#    interpreter = interpret.Interpreter()
-    #print interpreter.
-#    ambiguityResolver = ambiquity.AmbiquityResolver()
+def interpret(tree, world, holding, objects):
+    #interpreter = interpreting.Interpreter()
+    #print (tree)
+    #goals1 = interpreter.interpret(tree)
+    #print ("interp")
+    #print (goals1)
+    #ambiguityResolver = ambiguity.AmbiguityResolver(world, objects)
+    #goal2 = ambiguityResolver.handleInput(goals1)
     
-    #return ["put,onTop,f"]
+    #goal2 = ("move",) + goal2
+    #goal2 = list(goal2)
+    #goal2 = [','.join(goal2)]
+    #print(goal2)
+    #return goal2
+    return ["move,onTop,e,k"]
 
-#col = list(map(bool, world)).index(True)
-#return ["I pick up . . .", 'pick %d' % col, ". . . and I drop down", 'drop %d' % col]
-#return ["I pick up . . .", 'pick 1', ". . . and I drop down", 'drop 2']
-#return ["pick 1", "drop 2"]
-#return ["I do as you tell me"] + pickAndDrop
-#goal = ["onTop,c,a"]
-#return planning.performMove(goal, world)
-#return planning.test()
-    
-def solve(goal, world, holding, objects): 
-    holding = "e"
+
+def solve(goal, world, holding, objects):
     planner = planning.Planner(world, holding, objects)
     pickAndDrop = planner.startPlanning(goal)
     return pickAndDrop
-    
+
 def main(utterance, world, holding, objects, **_):
     result = {}
     result['utterance'] = utterance
     trees = parse(utterance)
     result['trees'] = [str(t) for t in trees]
+    print (result['trees'])
     if not trees:
         result['output'] = "Parse error!"
         return result
@@ -109,21 +110,35 @@ def main(utterance, world, holding, objects, **_):
 
 
 if __name__ == '__main__':
+    utterance1 = "put the large white ball in the red box"
+    utterance = utterance1.split()
+    interpreter = interpreting.Interpreter()
+    
+    goals1 = interpreter.interpret(tree)
+    
     world = [["e"],["g","l"],[],["k","m","f"],[]]
-    worldSize = "small"
+    objects = {
+    "a": { "form":"brick",   "size":"large",  "color":"green" },
+    "b": { "form":"brick",   "size":"small",  "color":"white" },
+    "c": { "form":"plank",   "size":"large",  "color":"red"   },
+    "d": { "form":"plank",   "size":"small",  "color":"green" },
+    "e": { "form":"ball",    "size":"large",  "color":"white" },
+    "f": { "form":"ball",    "size":"small",  "color":"black" },
+    "g": { "form":"table",   "size":"large",  "color":"blue"  },
+    "h": { "form":"table",   "size":"small",  "color":"red"   },
+    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
+    "k": { "form":"box",     "size":"large",  "color":"yellow"},
+    "l": { "form":"box",     "size":"large",  "color":"red"   },
+    "m": { "form":"box",     "size":"small",  "color":"blue"  }
+    }
+    holding = ""
 
-    utterance = shrd.getInput()
-    parse_trees = parse(utterance)
-    
-    x = interpret.I
-    goals = x.interpret(parse_trees)
-    
-    ambiguityResolver = AmbiguityResolver(worldSize)
 
-    #planner = planning.Planner()
     #input = json.load(sys.stdin)
+    print (main(utterance, world, holding, objects))
     #output = main(**input)
-    #json.dump(output, sys.stdout)
-    #json.dump(output, sys.stdout, sort_keys=True, indent=4)
+    # json.dump(output, sys.stdout)
+    # json.dump(output, sys.stdout, sort_keys=True, indent=4)
     #print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
-    #                        for (k, v) in output.items()), "}")
+     #                       for (k, v) in output.items()), "}")

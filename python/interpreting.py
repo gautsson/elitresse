@@ -19,7 +19,7 @@ class Interpreter:
     def printOut():
         return "hello"
 
-    def interpret(self, parse_trees):
+    def interpret(self, parseTree):
         """
         Takes a set of parse_trees and returns a set of goals in
         PDDL-like format
@@ -28,27 +28,24 @@ class Interpreter:
         Returns:   goals in PDDL-like format
         """
         
-        goals = list()
+        goal = list()
         
-        for eachParseTree in parse_trees:
-            command = eachParseTree[0]
+        command = parseTree[0]
         
-            if command == "take":
-                entity = eachParseTree[1]
-                
-                goals.append[self.interpretEntity(entity)]
+        if command == "take":
+            entity = parseTree[1]
+            goals.append([self.interpretEntity(entity)])
             
-            elif command == "put":
-                location = eachParseTree[1]
+        elif command == "put":
+            location = parseTree[1]
+            goals.append([self.interpretLocation(location)])
                 
-                goals.append[self.interpretLocation(location)]
+        elif command == "move":
+            entity   = parseTree[1]
+            location = parseTree[2]
                 
-            elif command == "move":
-                entity   = eachParseTree[1]
-                location = eachParseTree[2]
-                
-                goals.append([self.interpretEntity(entity), self.interpretLocation(location)])   
-        return goals
+            goals.append([self.interpretEntity(entity), self.interpretLocation(location)])   
+        return goal
         
     def interpretEntity(self, entity):
         """
