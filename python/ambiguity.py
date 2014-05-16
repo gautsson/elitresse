@@ -3,12 +3,11 @@ import random
 
 class AmbiguityResolver:
     
-    def __init__(self, world):
+    def __init__(self, world, objects):
         ''' Takes a world object.
         '''
-        self.world = world
-        self.objectsInWorld = world.worldObjects
-        self.worldPopulation = world.population
+        self.objectsInWorld = objects
+        self.worldPopulation = world
         
     def filterElements(self, objectList, relation, otherObjectList):
         ''' Takes 2 lists of possible marching objects for 2 object description and 
@@ -40,12 +39,10 @@ class AmbiguityResolver:
             match with the spatial description
         '''
         quantifiers = ["any", "the", "all"]
-            ## Reverse the list
-        parsedList[::-1]
             ## Save the first object in the reversed list, which is the last object of reference for the main object
         quantifier = ""
         relObj = parsedList.pop()
-        if len(parsedList) < 2:
+        if len(parsedList) == 1:
             quantifier = parsedList.pop()
         while len(parsedList) > 1:
             if parsedList[len(parsedList)-1] in quantifiers:
@@ -53,8 +50,12 @@ class AmbiguityResolver:
             relation = parsedList.pop()
             mainObj = parsedList.pop()
             relObj = self.filterElements(mainObj, relation, relObj)
+        if len(parsedList) == 1:
+            quantifier = parsedList.pop()
+        if relObj == 'floor':
+                return relObj
         if quantifier == "the":
-            if len(relObj) > 1 and not relObj == 'floor' :
+            if len(relObj) > 1:
                 objectAttributes = self.getObjectAttributes(relObj)
                 unformattedResult = self.getObjectDifferences(objectAttributes)
                 result = self.getMatchingObjects(unformattedResult[0])
@@ -74,8 +75,16 @@ class AmbiguityResolver:
                     return result[0]
                        
         elif quantifier == "any" or quantifier == "all":
-            return relObj[random.randrange(0, len(relObj)-1, 1)]
-        return relObj[0]
+            if len(relObj) == 1:
+                return relObj[0]
+            elif len(relObj) < 1:
+                return -1
+            else:
+                return relObj[random.randrange(0, len(relObj)-1, 1)]
+        if len(relObj) < 1:
+            return -1
+        else:
+            return relObj[0]
     
     def selectByNeighbour(self, neighbourObjects, duplicateObject):
         direction = ["to the right of a", "below a", "to the left of a", "above a"]
@@ -85,8 +94,8 @@ class AmbiguityResolver:
             while neighb < len(neighbourObjects[dir]):
                 if neighbourObjects[dir].count(neighbourObjects[dir][neighb]) == 1 and not neighbourObjects[dir][neighb] == "-":
                     while True:
-                        answer = raw_input("Do you mean the "+ duplicateObject[2]+ " "+ duplicateObject[1]+ " "+ duplicateObject[0]+ " that is the closest "+
-                            direction[dir]+ " "+ neighbourObjects[dir][neighb][2]+ " "+ neighbourObjects[dir][neighb][1]+
+                        answer = raw_input("Do you mean the "+ duplicateObject[1]+ " "+ duplicateObject[2]+ " "+ duplicateObject[0]+ " that is the closest "+
+                            direction[dir]+ " "+ neighbourObjects[dir][neighb][1]+ " "+ neighbourObjects[dir][neighb][2]+
                                                      " "+ neighbourObjects[dir][neighb][0]+ " ? (Y/N)").upper()
                         if answer == "Y":
                             return neighb
@@ -151,15 +160,14 @@ class AmbiguityResolver:
     def askQuestion(self, objDifference, objCandidates):
         while True:
             value = objCandidates[0][objDifference]
-            answer = raw_input("Did you mean the " + value +" "+ objCandidates[0][0] + "? (Y/N)").upper()
+            if objDifference == 0:
+                answer = raw_input("Did you mean a " + objCandidates[0][objDifference] +"? (Y/N)").upper()
+            else:
+                answer = raw_input("Did you mean the " + objCandidates[0][objDifference] +" "+ objCandidates[0][0] + "? (Y/N)").upper()
             if answer == 'Y' or answer == 'N':
                 break
         objCandidates = self.cleanCandidates(objCandidates, answer, objDifference, value)
         return objCandidates
-        #if len(objCandidates) == 1:
-         #   return objCandidates
-        #else:
-         #   self.getObjectDifferences(objCandidates)
     
     def getObjectAttributes(self, objects):
         objList = []
@@ -169,10 +177,8 @@ class AmbiguityResolver:
                 object = self.worldPopulation[obj[0]][obj[1]]
                 attr = self.objectsInWorld[object]['form']
                 oneObject.append(attr)
-                object = self.worldPopulation[obj[0]][obj[1]]
                 attr = self.objectsInWorld[object]['size']
                 oneObject.append(attr)
-                object = self.worldPopulation[obj[0]][obj[1]]
                 attr = self.objectsInWorld[object]['color']
                 oneObject.append(attr)
                 objList.append(list(oneObject))
@@ -182,7 +188,6 @@ class AmbiguityResolver:
         return objList
     
     def getObjectDifferences(self, objects):
-        attributes = ['form', 'size', 'color']
         i = 0
         while i < 3:
             attrList = []
@@ -193,6 +198,7 @@ class AmbiguityResolver:
                 return self.getObjectDifferences(self.askQuestion(i, objects))
             i = i + 1
         return objects
+    
         
     def onTop(self, topObject, botObject): 
         ''' Returns true if a given object is on top of another given object.
@@ -202,7 +208,7 @@ class AmbiguityResolver:
     def inside(self, object, container):
         ''' Returns true if a given object is inside of another given object.
         '''
-        return onTop(object, container)
+        return self.onTop(object, container)
     
     def rightOf(self, right, left):
         '''Returns true if a given object is right of another given object.
@@ -228,32 +234,6 @@ class AmbiguityResolver:
         ''' Returns true if a given object is beside another given object.
         '''
         return math.fabs(object[0]-nextObject[0]) == 1
-
-    def convertToPDDL(self, source, relation, target):
-            ''' Takes a source object, a relation and a target object
-            and converts it into PDDL in order to allow processing by the planner.
-            Returns a PDDL goal.
-            '''
-            return ((relation,source, target))
-            '''if len(sourceList) > 1 and len(targetList) > 1:
-                pddl.append("or")
-                for item in sourceList:
-                    for otherItem in targetList:
-                        pddl.append((relation,item,otherItem))
-                       
-            elif len(sourceList) > 1:
-                pddl.append("or")
-                for item in sourceList:    
-                    pddl.append((relation,item,targetList[0]))
-            elif len(targetList) > 1:
-                pddl.append("or")
-                for item in targetList:
-                    pddl.append((relation,sourceList[0],item))
-            else:
-                pddl.append((relation, sourceList[0], targetList[0]))
-            return pddl'''
-
-
     
     def getObjectCoordinates(self, object):
         ''' Searches the world for a given object and returns its coordinates.
@@ -266,17 +246,8 @@ class AmbiguityResolver:
                     return [wIndex,sIndex]
                 sIndex = sIndex + 1
             wIndex = wIndex + 1
+        return None
        
-    def findPlacesOnTheFloor(self):
-        ''' Searches for all places that are available on the floor
-        '''
-        wIndex = 0
-        freeFloorPlaces = []
-        for worldIndex in self.worldPopulation:
-            if not worldIndex:
-                freeFloorPlaces.append((wIndex,0))
-            wIndex = wIndex + 1
-        return freeFloorPlaces    
     def getMatchingObjects(self, objectToBeChecked):
         '''Finds matching world objects.
             Takes an object and compares it attribute by attribute
@@ -288,7 +259,8 @@ class AmbiguityResolver:
             match = True
             if (objectToBeChecked[0] and 
                     self.objectsInWorld[object]['form'] != objectToBeChecked[0]):
-                    match = False
+                    if not objectToBeChecked[0] == 'anyform':
+                        match = False
             if (objectToBeChecked[1] and 
                     self.objectsInWorld[object]['size'] != objectToBeChecked[1]):
                     match = False
@@ -296,8 +268,10 @@ class AmbiguityResolver:
                     self.objectsInWorld[object]['color'] != objectToBeChecked[2]):
                     match = False
             if match:
-                coords = tuple(self.getObjectCoordinates(object))
-                matchingObjects.append(coords)
+                location = self.getObjectCoordinates(object)
+                if not location == None:
+                    coords = tuple(self.getObjectCoordinates(object))
+                    matchingObjects.append(coords)
         matchTuple = tuple(matchingObjects)
         return matchTuple
     
@@ -308,22 +282,74 @@ class AmbiguityResolver:
         sourceList = []
         targetList = []
         source = True
-        for bigList in inputList[0]:
-            if source:
-                sourceList = self.parse(bigList)
-                source = False
-            else:
-                targetList = self.parse(bigList)
-        relation = targetList.pop(0)
-        sourceResult = self.resolve(sourceList)
+        command = inputList.pop(0)
+        sourceResult = 0
+        targResult = 0
+        if command == "move":
+            for bigList in inputList[0]:
+                if source:
+                    sourceList = self.parse(bigList)
+                    source = False
+                else:
+                    targetList = self.parse(bigList)
+        elif command == "put" or command == "take":
+            targetList = self.parse(inputList[0])
+        if not command == 'take':
+            relation = targetList.pop(0)
+        if not len(sourceList) == 0:
+            sourceResult = self.resolve(sourceList)
         targResult = self.resolve(targetList)
-          ## If the target is the floor, find all the places available on the floor
-        if targResult == "floor":
-            targResult = self.findPlacesOnTheFloor()
-        print (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
-        #pddl = self.convertToPDDL(sourceResult, relation, targResult)
-        return (relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
-        
+        if sourceResult == -1 or targResult == -1:
+            return []
+        if command == 'take':
+            if targResult == 'floor':
+                #print (command, targResult)
+                return command + "," + targResult
+            else:
+                #print (command, self.worldPopulation[targResult[0]][targResult[1]])
+                return command + "," + self.worldPopulation[targResult[0]][targResult[1]]
+        elif command == 'put':
+            if targResult == 'floor':
+                #print (command, relation, targResult)
+                return command + "," + relation + "," + targResult
+            else:
+                #print (command, relation, self.worldPopulation[targResult[0]][targResult[1]])
+                return command + "," + relation + "," + self.worldPopulation[targResult[0]][targResult[1]]
+        else:
+            if sourceResult == 'floor':
+                #print (command, relation, sourceResult, self.worldPopulation[targResult[0]][targResult[1]])
+                return command + "," + relation + "," + sourceResult + "," + self.worldPopulation[targResult[0]][targResult[1]]
+            elif targResult == 'floor':
+                #print (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], targResult)
+                return command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + targResult
+            else:
+                #print (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
+                return command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + self.worldPopulation[targResult[0]][targResult[1]]
+        '''if command == 'take':
+            if targResult == 'floor':
+                print (command, targResult)
+                return (command, targResult)
+            else:
+                print (command, self.worldPopulation[targResult[0]][targResult[1]])
+                return (command, self.worldPopulation[targResult[0]][targResult[1]])
+        elif command == 'put':
+            if targResult == 'floor':
+                print (command, relation, targResult)
+                return (command, relation, targResult)
+            else:
+                print (command, relation, self.worldPopulation[targResult[0]][targResult[1]])
+                return (command, relation, self.worldPopulation[targResult[0]][targResult[1]])
+        else:
+            if sourceResult == 'floor':
+                print (command, relation, sourceResult, self.worldPopulation[targResult[0]][targResult[1]])
+                return (command, relation, sourceResult, self.worldPopulation[targResult[0]][targResult[1]])
+            elif targResult == 'floor':
+                print (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], targResult)
+                return (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], targResult)
+            else:
+                print (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
+                return (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
+        '''
     def parse(self, inputList):
         ''' Takes a list from the interpreter and parses it to a format
             which will allow processing through disambiguation methods.
@@ -386,9 +412,16 @@ class World:
         if size == "small":
             self.population = [["e"],["g","l"],[],["k","m","f"],[]]
             self.worldObjects = {
+        "a": { "form":"brick",   "size":"large",  "color":"green" },
+        "b": { "form":"brick",   "size":"small",  "color":"white" },
+        "c": { "form":"plank",   "size":"large",  "color":"red"   },
+        "d": { "form":"plank",   "size":"small",  "color":"green" },
         "e": { "form":"ball",    "size":"large",  "color":"white" },
         "f": { "form":"ball",    "size":"small",  "color":"black" },
         "g": { "form":"table",   "size":"large",  "color":"blue"  },
+        "h": { "form":"table",   "size":"small",  "color":"red"   },
+        "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
+        "j": { "form":"pyramid", "size":"small",  "color":"red"   },
         "k": { "form":"box",     "size":"large",  "color":"yellow"},
         "l": { "form":"box",     "size":"large",  "color":"red"   },
         "m": { "form":"box",     "size":"small",  "color":"blue"} }
@@ -452,32 +485,12 @@ class World:
         "sbox1":   { "form":"box",     "size":"small",  "color":"red"   },
         "sbox2":   { "form":"box",     "size":"small",  "color":"blue"} }
             
-#if __name__ == '__main__':
+if __name__ == '__main__':
     '''
         This method is purely for testing purposes of the above functions. 
     '''
-    #myMediumWorld = World("medium")
-    #ambMediumSolver = AmbiguityResolver("someGoal", myMediumWorld)
+    myMediumWorld = World("small")
+    ambMediumSolver = AmbiguityResolver(myMediumWorld.population, myMediumWorld.worldObjects)
     #ambMediumSolver.resolve(((1,1),(0,0)), "leftOf", ((0,0),(7,0)))
-    #ambMediumSolver.handleInput([[['the', ['ball', '', 'white']], ['inside', [['the', ['box', '', '']], [['above', ['the', ['plank', '', '']]]]]]]])
-    #ambMediumSolver.handleInput([[['the', ['ball', '', 'black']], ['beside', [['any', ['pyramid', '', '']], [['ontop', 'floor']]]]]])
-
-    '''f = ambSmallSolver.getObjectCoordinates("f")
-    m = ambSmallSolver.getObjectCoordinates("m")
-    print "----Should be True, False all the time-----"
-    print ambSmallSolver.onTop(f, m)
-    print ambSmallSolver.onTop(m, f)
-    e = ambSmallSolver.getObjectCoordinates("e")
-    print ambSmallSolver.rightOf(f, e)
-    print ambSmallSolver.rightOf(m, f)
-    print ambSmallSolver.leftOf(e, f)
-    print ambSmallSolver.leftOf(m, e)
-    print ambSmallSolver.above(f, e)
-    l = ambSmallSolver.getObjectCoordinates("l")
-    print ambSmallSolver.above(l, m)
-    print ambSmallSolver.under(e, f)
-    print ambSmallSolver.under(f, l)
-    print ambSmallSolver.beside(e, l)
-    print ambSmallSolver.beside(l, e)
-    print ambSmallSolver.beside(m, l)
-    '''
+    ambMediumSolver.handleInput(['move', [['the', ['table', '', 'blue']], ['rightof', ['the', ['box', '', 'blue']]]]])
+    #ambMediumSolver.handleInput(['take', ['the', ['table', '', '']]])

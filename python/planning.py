@@ -107,50 +107,42 @@ class Planner:
                 stack = stack+1
 
     # Starting function
-    def startPlanning(self, goal):        
+    def startPlanning(self, goal):    
         goalList = goal.split(",")
         command = goalList[0]
         emptyStacks = self.getEmptyStacks(self.startWorld) 
-
+        
         if command == "move":
             relation = goalList[1]
             sourceObject = goalList[2]
             targetObject = goalList[3]
-
-            #If the relation is above, onTop or inside, we check whether the constraints allow the goal to be executed
             
-            #if preConstraintCheck(sourceObject, targetObject):
-            return self.search(goal)
-        
+            if relation == "ontop" or relation == "inside" or relation == "above":
+                if not self.preConstraintCheck(sourceObject, targetObject):
+                    return ["The rules do not allow this command"]
+
         elif command == "take":
             object = goalList[1]
             
             pickObjectStack = self.pickFunctionCheck(self.startWorld, object)
             
-            if not pickObjectStack == None:
-                return ["pick " + str(pickObjectStack)]
-            else: 
-                if self.holding:
-                    if self.holding == object:
-                       # print self.holding
-                        return ["I am already holding the object"]
-                    else:
-                        if not emptyStacks:
+            if self.holding:
+                if self.holding == object:
+                    return ["I am already holding the object"]
+                else:
+                    if not emptyStacks:
                             for stack in len(self.startWorld):
                                 if self.drop(self.startWorld, stack, self.holding):
                                     self.holding = ""
-                                    self.commandString.append("drop " + str(stack))
-                            return self.search(goal)
-                    
-                        else:
-                            self.drop(self.startWorld, emptyStacks[0], self.holding)
-                            self.holding = ""
-                            self.commandString.append("drop " + str(emptyStacks[0]))
-           
-                        return self.search(goal)
-                else:         
-                    return self.search(goal)
-        
+                                    self.commandString.append("drop " + str(stack))            
+                    else:
+                        self.drop(self.startWorld, emptyStacks[0], self.holding)
+                        self.holding = ""
+                        self.commandString.append("drop " + str(emptyStacks[0]))
+            else:
+                if not pickObjectStack == None:
+                    return ["pick " + str(pickObjectStack)]
+
         elif command == "put":
             relation = goalList[1]
             targetObject = goalList[2]
@@ -164,18 +156,16 @@ class Planner:
                     if self.drop(self.startWorld, stack, self.holding):
                         self.holding = ""
                         self.commandString.append("drop " + str(stack))
-                        return self.search(goal)
                     
             else:
                 self.drop(self.startWorld, emptyStacks[0], self.holding)
                 self.holding = ""
                 self.commandString.append("drop " + str(emptyStacks[0]))
            
-                return self.search(goal)
-        
-    def preConstraintCheck(self, relation, sourceObject, targetObject):
-        rules = self.Rules(self.objects)
+        return self.search(goal)
 
+    def preConstraintCheck(self, sourceObject, targetObject):
+        rules = self.Rules(self.objects)
         return rules.applyRules(sourceObject, targetObject)
 #
 # The search function, our pride and joy
@@ -287,7 +277,6 @@ class Planner:
     def drop(self, world, stack, object):
         rules = self.Rules(self.objects)
 
-
         if len (world[stack]) == 0:
             world[stack].append(object)
             return True
@@ -305,7 +294,6 @@ class Planner:
         goalList = goal.split(",")
         command = goalList[0]
        
-        
         if command == "take":
             object = goalList[1]
             if node.holding == object:
@@ -315,7 +303,7 @@ class Planner:
                 locObject = self.getLocation(node.world, object)
                 stackHeight = self.getStackHeight(node.world, locObject[0])
 
-                return stackHeight - locObject[1]
+                return abs(stackHeight - locObject[1]) * 2
 
         elif command == "move":    
             objA = goalList[2]
@@ -324,7 +312,7 @@ class Planner:
             locA = self.getLocation(node.world, objA)
             locB = self.getLocation(node.world, objB)
             
-            return abs((locA[1] - self.getStackHeight(node.world, locA[0])) + (locB[1] - self.getStackHeight(node.world, locB[0]))) * (len(self.startWorld) / 5)
+            return abs((locA[1] - self.getStackHeight(node.world, locA[0])) + (locB[1] - self.getStackHeight(node.world, locB[0]))) * 2
 
     def reconstructPath(self, node, cmdString):
         if node.parent == None: # Base case
@@ -395,7 +383,7 @@ class Planner:
             elif (len(fromWorld[column]) != len(toWorld[column]) and end == -1):
                 end = column
 
-        return abs(end - start)
+        return abs(end - start) * len(self.startWorld)                
 
 
     # Checks whether the goal has been satisfied or not
@@ -413,7 +401,7 @@ class Planner:
             sourceObjectLocation = self.getLocation(node.world, sourceObject)
             targetObjectLocation = self.getLocation(node.world, targetObject)
 
-            if relation == "onTop" or relation == "inside":
+            if relation == "ontop" or relation == "inside":
                 if targetObject == "floor":
                     coordinates = self.getLocation(node.world, sourceObject) 
                     return coordinates[1] == 0
@@ -425,9 +413,9 @@ class Planner:
                 return sourceObjectLocation[0] == targetObjectLocation[0] and sourceObjectLocation[1] < targetObjectLocation[1]
             elif relation == "beside":
                 return (sourceObjectLocation[0] == targetObjectLocation[0] + 1) or (sourceObjectLocation[0] == targetObjectLocation[0] - 1)
-            elif relation == "leftOf":
+            elif relation == "leftof":
                 return sourceObjectLocation[0] < targetObjectLocation[0]
-            elif relation == "rightOf":
+            elif relation == "rightof":
                 return sourceObjectLocation[0] > targetObjectLocation[0]
     # Utility functions, remove these functions
     def getWorldLength(self, world):
@@ -520,4 +508,3 @@ if __name__ == '__main__':
         #print planner.search(goal)
         #goal = "above,e,j" 
         #test = self.isGoal(medium,goal) 
-

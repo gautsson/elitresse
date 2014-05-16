@@ -10,7 +10,8 @@ import json
 import interpreting
 import planning
 import ambiguity
-
+import time
+import os
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
 
@@ -61,9 +62,15 @@ def parse(utterance):
         return []
 
 
-def interpret(tree, world, holding, objects):
+def interpret(tree, world, holding, objects):    
+    # return ["take,e"]
+    interpreter = interpreting.Interpreter()
+    ambiguityResolver = ambiguity.AmbiguityResolver(world, objects)
     
-    return ["put,onTop,floor"]
+    preGoal = interpreter.interpret(tree)
+
+    goal = ambiguityResolver.handleInput(preGoal)
+    return goal
 
 
 def solve(goal, world, holding, objects):
@@ -76,12 +83,11 @@ def main(utterance, world, holding, objects, **_):
     result['utterance'] = utterance
     trees = parse(utterance)
 
-    result['trees'] = [str(t) for t in trees]
+    result['trees'] = trees
     if not trees:
         result['output'] = "Parse error!"
         return result
-    result['goals'] = goals = [goal for tree in trees
-                               for goal in interpret(tree, world, holding, objects)]
+    result['goals'] = goals = interpret(trees, world, holding, objects)
     if not goals:
         result['output'] = "Interpretation error!"
         return result
@@ -97,42 +103,76 @@ def main(utterance, world, holding, objects, **_):
     return result
 
 
+def isFileEmpty(fileName):
+    return os.stat(fileName)[6]==0
+
+def writeFile(fileName, newContents):
+    file = open(fileName, "a")
+    # If file is empty
+    if isFileEmpty(fileName):
+        file.write(newContents)
+    else:
+        file.write("," + newContents)
+    file.close()
+
+def readFile(fileName):
+    infile = file(fileName, 'r')
+    whole = infile.readlines()
+    infile.close()
+    return whole
+
+def resetFile(fileName):
+    file = open(fileName, "w")
+    file.write("")
+    file.close()
+
+def getPreviousAnswers():
+    a = readFile("config.cf")
+    listOfUserAnswers = []
+    if not isFileEmpty("config.cf"):
+        listOfPreviousAnswers = a[0].split(",")
+        return listOfPreviousAnswers
+        
+
+def initialize(utterance, world, holding, objects, **_):
+    whole = readFile("config.cf")
+    if not whole:
+        result = main(**input)
+        #writeFile("config.cf","")
+        return result
+
+    else:
+        #interpreter = interpreting.Interpreter()
+        #preGoal = interpreter.interpret(tree)
+        #writeFile("config.cf",preGoal)
+
+        result = {}
+        #result['utterance'] = ["Blah"]
+        #result['trees'] = ["Meh"]
+        #result['goals'] = ["Mei"]
+        result['utterance'] = utterance
+        trees = parse(utterance)
+
+        result['trees'] = trees
+        result['goals'] = goals = interpret(trees, world, holding, objects)
+        if not goals:
+            result['output'] = "Interpretation error!"
+            return result
+        if len(goals) > 1:
+            result['output'] = "Ambiguity error!"
+            return result
+        goal = goals[0]
+        result['plan'] = goal
+        result['output'] = "You need to be more specific"
+        #result['plan'] = ["Do you mean the ball to the right?"]
+        return result
+
 if __name__ == '__main__':
-    #utterance1 = "put the large white ball in the red box"
-    #utterance = utterance1.split()
-    
-    #goals1 = interpreter.interpret(tree)
-    
-    #world = [["e"],["g","l"],[],["k","m","f"],[]]
-    #objects = {
-    #"a": { "form":"brick",   "size":"large",  "color":"green" },
-    #"b": { "form":"brick",   "size":"small",  "color":"white" },
-    #"c": { "form":"plank",   "size":"large",  "color":"red"   },
-    #"d": { "form":"plank",   "size":"small",  "color":"green" },
-    #"e": { "form":"ball",    "size":"large",  "color":"white" },
-    #"f": { "form":"ball",    "size":"small",  "color":"black" },
-    #"g": { "form":"table",   "size":"large",  "color":"blue"  },
-    #"h": { "form":"table",   "size":"small",  "color":"red"   },
-    #"i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-    #"j": { "form":"pyramid", "size":"small",  "color":"red"   },
-    #"k": { "form":"box",     "size":"large",  "color":"yellow"},
-    #"l": { "form":"box",     "size":"large",  "color":"red"   },
-    #"m": { "form":"box",     "size":"small",  "color":"blue"  }
-    #}
-    #holding = ""
-
-    #)
-    #result = (main(utterance, world, holding, objects))
-    
-    #print (result['trees'])
-
-    #for tree in result ['trees']:
-    #    print (type(tree))       
-    #    print (tree)
     input = json.load(sys.stdin)
-    output = main(**input)
+    output = initialize(**input)
+
     # json.dump(output, sys.stdout)
     # json.dump(output, sys.stdout, sort_keys=True, indent=4)
     print("{", ",\n  ".join('%s: %s' % (json.dumps(k), json.dumps(v))
-                           for (k, v) in output.items()), "}")
-
+            for (k, v) in output.items()), "}")
+        
