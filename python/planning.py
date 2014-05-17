@@ -10,7 +10,6 @@ class Planner:
         self.objects = objects
         self.commandString = []
 
-      #  print gc.isenabled()
     #
     # Node class, which storesI information about all the states the world goes through
     #
@@ -27,9 +26,11 @@ class Planner:
    
         def compareTo(self, node):
             return self.world == node.world 
+    
     #
     # Rules class which holds the constraints
     #
+
     class Rules:
         def __init__(self, objects):
             self.ruleList = [self.ballInBox, self.notSupportedByBall, self.smallBeneathLarge,
@@ -38,14 +39,19 @@ class Planner:
 
         def applyRules(self, objectId, stackObjectId):
             object = self.objects[objectId]
-            stackObject = self.objects[stackObjectId]
+            stackObject = None
+
+            if stackObjectId == "floor":
+                return True
+            else:
+                stackObject = self.objects[stackObjectId]
 
             for rule in self.ruleList:
                 if rule(object, stackObject) == False:
                     return False
 
             return True
-
+        
         # Balls must be in boxes or on the floor, otherwise they roll away 
 
         def ballInBox(self, object, stackObject): 
@@ -109,8 +115,7 @@ class Planner:
     # Starting function
     def startPlanning(self, goal):    
         goalList = goal.split(",")
-        command = goalList[0]
-        emptyStacks = self.getEmptyStacks(self.startWorld) 
+        command = goalList[0] 
         
         if command == "move":
             relation = goalList[1]
@@ -121,6 +126,8 @@ class Planner:
                 if not self.preConstraintCheck(sourceObject, targetObject):
                     return ["The rules do not allow this command"]
 
+            
+
         elif command == "take":
             object = goalList[1]
             
@@ -130,39 +137,41 @@ class Planner:
                 if self.holding == object:
                     return ["I am already holding the object"]
                 else:
-                    if not emptyStacks:
-                            for stack in len(self.startWorld):
-                                if self.drop(self.startWorld, stack, self.holding):
-                                    self.holding = ""
-                                    self.commandString.append("drop " + str(stack))            
-                    else:
-                        self.drop(self.startWorld, emptyStacks[0], self.holding)
-                        self.holding = ""
-                        self.commandString.append("drop " + str(emptyStacks[0]))
-            else:
-                if not pickObjectStack == None:
+                    self.dropObject(object)
+
+            elif not pickObjectStack == None:
                     return ["pick " + str(pickObjectStack)]
 
         elif command == "put":
+            if not self.holding:
+                return []
+            
             relation = goalList[1]
             targetObject = goalList[2]
 
+            if relation == "ontop" or relation == "inside" or relation == "above":
+                if not self.preConstraintCheck(sourceObject, targetObject):
+                    return ["The rules do not allow this command"]
+            
+            self.dropObject(targetObject)
+
             goal = "move" + "," + relation + "," + self.holding + "," + targetObject
-            
-            #if preConstraintCheck(sourceObject, targetObject):
-            
-            if not emptyStacks:
-                for stack in len(self.startWorld):
-                    if self.drop(self.startWorld, stack, self.holding):
-                        self.holding = ""
-                        self.commandString.append("drop " + str(stack))
-                    
-            else:
-                self.drop(self.startWorld, emptyStacks[0], self.holding)
-                self.holding = ""
-                self.commandString.append("drop " + str(emptyStacks[0]))
-           
+
         return self.search(goal)
+
+    def dropObject(self, object):
+        emptyStacks = self.getEmptyStacks(self.startWorld)
+        pickObjectStack = self.pickFunctionCheck(self.startWorld, object)
+
+        if not emptyStacks:
+            for stack in range (len(self.startWorld)):
+                if self.drop(self.startWorld, stack, self.holding):
+                    self.holding = None
+                    self.commandString.append("drop " + str(stack))            
+        else:
+            self.drop(self.startWorld, emptyStacks[0], self.holding)
+            self.holding = None
+            self.commandString.append("drop " + str(emptyStacks[0]))
 
     def preConstraintCheck(self, sourceObject, targetObject):
         rules = self.Rules(self.objects)

@@ -1,6 +1,7 @@
 import interpreting
 import ambiguity
 import planning
+from copy import deepcopy
 import json
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
@@ -37,7 +38,7 @@ def parse(utterance):
     except ValueError:
         return []
 
-def determineState():
+def getStartingState():
     while True:
         worldSize = raw_input ('Enter the size of the world (small/medium/complex/impossible): ')
 
@@ -49,9 +50,11 @@ def determineState():
             return json.load(open('../examples/complex.json'))
         elif worldSize  == "impossible":
             return json.load(open('../examples/impossible.json'))
+        else:
+            print "Not a valid world size\n"
 
 def getUtterance(examples):
-    utterance = raw_input ('Enter a command to Shrdlite: ')       
+    utterance = raw_input ('\nEnter a command to Shrdlite: ')       
     return utterance.split()
 
 def interpret(trees, world, objects):
@@ -61,15 +64,16 @@ def interpret(trees, world, objects):
     preGoal = interpreter.interpret(trees)
 
     goal = ambiguityResolver.handleInput(preGoal)
+    
     return goal
 
 def solve(goal, world, holding, objects):
     planner = planning.Planner(world, holding, objects)
     pickAndDrop = planner.startPlanning(goal)
+
     return pickAndDrop
 
 def doPlan(world, holding, plan):
-    holding = ""
     for action in plan:
         splitAction = action.split()
         
@@ -77,41 +81,43 @@ def doPlan(world, holding, plan):
             holding = world[int(splitAction[1])].pop()
         elif splitAction[0] == "drop":
             world[int(splitAction[1])].append(holding)
-            holding = ""
+            holding = None
 
     return holding
 
 def main():
-    state   = determineState()
-    world   = state['world']
-    objects = state['objects']
-    examples = state['examples']
-    holding = state['holding']
+    print "Welcome to Shrdlite!\n"
 
+    startingState = getStartingState()
+    world    = startingState['world']
+    objects  = startingState['objects']
+    examples = startingState['examples']
+    holding  = startingState['holding']
+   
     while True:
-        print "Current world state"
+        print "\nCURRENT WORLD STATE"
         print world
+        print "Currently holding: " + str(holding) + "\n"
         
         utterance = getUtterance(examples)
-        print utterance
-        parseTrees = parse(utterance)
-        print parseTrees
 
-        #goal = interpret(parseTrees, world, objects)
-        #print goal
+        parseTrees = parse(utterance)
+        if not parseTrees:
+            print "Parse error!"
+            continue
         
         goal = interpret(parseTrees, world, objects)
-        
-        
-        #goal = 'put,onTop,k'
+        if not goal:
+            print "Interpretation error!"
+            continue
 
-        plan = solve(goal, world, holding, objects)
-        print "Plan"
-        print plan
+        worldCopy = deepcopy(world)
+        plan = solve(goal, worldCopy, holding, objects)
+        if not plan:
+            print "Planning error"
+            continue
+        
         holding = doPlan(world, holding, plan)
-        print "Holding: " + holding + "\n\n"
 
 if __name__ == '__main__':    
     main()
-
-
