@@ -100,8 +100,8 @@ def main():
         #goal = interpret(parseTrees, world, objects)
         #print goal
         
-        goal = interpret(parseTrees, world, objects)
-        
+        goals = interpret(parseTrees, world, objects)
+        goal = goals[0]
         
         #goal = 'put,onTop,k'
 

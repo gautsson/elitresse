@@ -304,27 +304,27 @@ class AmbiguityResolver:
         if command == 'take':
             if targResult == 'floor':
                 #print (command, targResult)
-                return command + "," + targResult
+                return [command + "," + targResult]
             else:
                 #print (command, self.worldPopulation[targResult[0]][targResult[1]])
-                return command + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + self.worldPopulation[targResult[0]][targResult[1]]]
         elif command == 'put':
             if targResult == 'floor':
                 #print (command, relation, targResult)
-                return command + "," + relation + "," + targResult
+                return [command + "," + relation + "," + targResult]
             else:
                 #print (command, relation, self.worldPopulation[targResult[0]][targResult[1]])
-                return command + "," + relation + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + relation + "," + self.worldPopulation[targResult[0]][targResult[1]]]
         else:
             if sourceResult == 'floor':
                 #print (command, relation, sourceResult, self.worldPopulation[targResult[0]][targResult[1]])
-                return command + "," + relation + "," + sourceResult + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + relation + "," + sourceResult + "," + self.worldPopulation[targResult[0]][targResult[1]]]
             elif targResult == 'floor':
                 #print (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], targResult)
-                return command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + targResult
+                return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + targResult]
             else:
                 #print (command, relation, self.worldPopulation[sourceResult[0]][sourceResult[1]], self.worldPopulation[targResult[0]][targResult[1]])
-                return command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + self.worldPopulation[targResult[0]][targResult[1]]]
         '''if command == 'take':
             if targResult == 'floor':
                 print (command, targResult)
