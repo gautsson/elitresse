@@ -342,21 +342,21 @@ class AmbiguityResolver:
             return []
         if command == 'take':
             if targResult == 'floor':
-                return command + "," + targResult
+                return [command + "," + targResult]
             else:
-                return command + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + self.worldPopulation[targResult[0]][targResult[1]]]
         elif command == 'put':
             if targResult == 'floor':
-                return command + "," + relation + "," + targResult
+                return [command + "," + relation + "," + targResult]
             else:
-                return command + "," + relation + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + relation + "," + self.worldPopulation[targResult[0]][targResult[1]]]
         else:
             if sourceResult == 'floor':
-                return command + "," + relation + "," + sourceResult + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + relation + "," + sourceResult + "," + self.worldPopulation[targResult[0]][targResult[1]]]
             elif targResult == 'floor':
-                return command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + targResult
+                return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + targResult]
             else:
-                return command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + self.worldPopulation[targResult[0]][targResult[1]]
+                return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + self.worldPopulation[targResult[0]][targResult[1]]]
 
     def parse(self, inputList):
         ''' Takes a list from the interpreter and parses it to a format
