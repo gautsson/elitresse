@@ -34,9 +34,16 @@ class AmbiguityResolver:
         return list(set(selectedList))
         
     def resolve(self, parsedList):
-        ''' This is used for both the source list of elements and target list of elements
-            and calls the filterElements() function, to get rid of the elements that don't
-            match with the spatial description
+        ''' This is the main function that deals with solving the ambiguity, calling for clarification questions 
+            and differentiating between quantifiers. It is used for both the source list of elements and target list of elements
+            and calls the filterElements() function, to get rid of the elements that don't match the spatial description.
+            The next step is interpreting the quantifiers. In case of "any" and "all", if the list of candidate objects has more than one
+            object, it will pick one of them randomly.
+            In case of "the" quantifier, if the filtered list of candidate objects has more than one candidate, the clarification questions will
+            be used.
+            First it will start searching for differences in attributes by calling the function getObjectDifferences and ask questions about 
+            those attributes to narrow down the list. After this, if the resulting list of candidates (unformattedResult) still has more than one
+            element, it will start checking the neighbours and ask questions about the candidates' positions according to their neighbours.
         '''
         quantifiers = ["any", "the", "all"]
             ## Save the first object in the reversed list, which is the last object of reference for the main object
@@ -87,6 +94,9 @@ class AmbiguityResolver:
             return relObj[0]
     
     def selectByNeighbour(self, neighbourObjects, duplicateObject):
+        '''This is the function that actually compares the neighbours on one direction for each object,
+            and asks questions to eliminate or select objects according to the user's answer.
+        '''
         direction = ["to the right of a", "below a", "to the left of a", "above a"]
         dir = 0
         while dir < len(neighbourObjects[0]):
@@ -113,6 +123,10 @@ class AmbiguityResolver:
         return -1
 
     def getNeighbours(self, objCandidates, range):
+        '''This function saves in separate lists the neighbours to the left of all object candidates, those on top,
+            to the right and under each candidate. The goal is to be able to compare neighbours on one direction
+            for all the candidates, in order to differentiate them and narrow down the list of candidate objects.
+        '''
         candidatesNeighb = []
         leftNeighbours = []
         topNeighbours = []
@@ -146,6 +160,11 @@ class AmbiguityResolver:
             
         
     def cleanCandidates(self, objCandidates, answer, difference, value):
+        '''
+            Tahes as input the answer, the index of the attribute difference (0=form, 1=size, 2=colour)
+            and the actual value of the attribute that differs. If the answer is yes, it will select all elements that have
+            as attribute the value given, otherwise it will eliminate from the list those objects sharing that value attribute.
+        '''
         newCandidates = []
         if answer == 'Y':
             for obj in objCandidates:
@@ -158,6 +177,11 @@ class AmbiguityResolver:
         return newCandidates
     
     def askQuestion(self, objDifference, objCandidates):
+        '''
+            Function that asks questions based on the attribute differences. It takes a difference, and if that difference is in "form"
+            it will ask about the form of the described object, narrowing down the list by calling the function cleanCandidates and returning it.
+            If the difference is in colour or shape, the questions slightly differs, but the selection (cleanCandidates) is the same, according to the answer.
+        '''
         while True:
             value = objCandidates[0][objDifference]
             if objDifference == 0:
@@ -170,6 +194,11 @@ class AmbiguityResolver:
         return objCandidates
     
     def getObjectAttributes(self, objects):
+        '''
+            Function that takes as input a list of objects in terms of their coordinates
+            and interacting with the objects' descriptions in the world it returns the list of
+            same objects, but described by their attributes.
+        '''
         objList = []
         oneObject = []
         for obj in objects:
@@ -188,6 +217,14 @@ class AmbiguityResolver:
         return objList
     
     def getObjectDifferences(self, objects):
+        '''It creates a list for each attribute, containing each object's value for that attribute.
+           So it will create a list of forms, a list of sizes and one of colours.
+           In order to check for differences it transforms the list in a set and if there's more than
+           one element in the list, there are one or more differences so it calls the function ask question
+           to select objects by the first difference.
+           This recursively calls itself taking as argument the result of asking the question and selecting objects.
+           At the end it will return a list of candidates narrowed down (to preferably one element).
+        '''
         i = 0
         while i < 3:
             attrList = []
@@ -276,8 +313,9 @@ class AmbiguityResolver:
         return matchTuple
     
     def handleInput(self, inputList):
-        ''' Separates the list received as parameter into a source list and a target list,
-            which are parsed separately by calling the parse function.
+        ''' Separates the list received as parameter into action, source list, relation and a target list.
+            The lists are parsed separately by calling the parse function, and then they are processed with the resolve function
+            to resolve ambiguity and return a single goal.
         '''
         sourceList = []
         targetList = []
