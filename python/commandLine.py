@@ -119,7 +119,7 @@ def main():
             print "Planning error!"
             continue
         
-        print "Plan: " str(plan)
+        print "Plan: ", str(plan)
 
         holding = doPlan(world, holding, plan)
 
