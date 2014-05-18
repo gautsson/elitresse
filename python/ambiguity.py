@@ -340,7 +340,6 @@ class AmbiguityResolver:
         targResult = self.resolve(targetList)
         if sourceResult == -1 or targResult == -1:
             return []
-        print sourceResult, targResult
         if command == 'take':
             if targResult == 'floor':
                 return command + "," + targResult
