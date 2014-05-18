@@ -52,10 +52,8 @@ class Planner:
 
             return True
         
+
         # Balls must be in boxes or on the floor, otherwise they roll away 
-
-        
-
         def ballInBox(self, object, stackObject): 
             if object["form"] == "ball":
                 if stackObject["form"] == "box":
@@ -63,21 +61,21 @@ class Planner:
                 else:
                     return False
 
-        # Balls cannot support anything
 
+        # Balls cannot support anything
         def notSupportedByBall(self, object, stackObject):
             return not stackObject["form"] == "ball"
 
-        # Small objects cannot support large objects
 
+        # Small objects cannot support large objects
         def smallBeneathLarge(self, object, stackObject):
             if stackObject["size"] == "small" and object["size"] == "large":
                 return False
             else:
                 return True
 
-        # Boxes cannot contain pyramids or planks of the same size
 
+        # Boxes cannot contain pyramids or planks of the same size
         def containedInBox(self, object, stackObject):
             if stackObject["form"] == "box":
                 if object["form"] == "pyramid" and object["size"] == stackObject["size"]:
@@ -91,7 +89,6 @@ class Planner:
 
         # Boxes can only be supported by tables or planks of the same size,
         # but large boxes can also be supported by large bricks.
-
         def boxIsSupported(self, object, stackObject):
             if object["form"] == "box":
                 if stackObject["form"] == "table" and object["size"] == stackObject["size"]:
@@ -104,11 +101,12 @@ class Planner:
                     return False
 
 # ----------------------------------------------------------
+    # This function checks whether constraints are satisfied before the planner starts
     def preConstraintCheck(self, sourceObject, targetObject):
         rules = self.Rules(self.objects)
         return rules.applyRules(sourceObject, targetObject)
 
-    # Starting function
+    # Starting function in the planner!
     def startPlanning(self, goal):    
         goalList = goal.split(",")
         command = goalList[0] 
@@ -157,6 +155,7 @@ class Planner:
             
         return self.search(goal)
 
+    # Drop object function
     def dropObject(self, object):
         emptyStacks = self.getEmptyStacks(self.startWorld)
         
@@ -168,10 +167,9 @@ class Planner:
                 if self.drop(self.startWorld, stack, object):
                     self.commandString.append("drop " + str(stack))            
 
-#
-# The search function, our pride and joy
-#
-
+    #
+    # The search function, our pride and joy
+    #
     def search(self, goal): 
         goalList = goal.split(",")
         command = goalList[0]
@@ -223,9 +221,9 @@ class Planner:
                     neighborTuple = (neighbor.f, neighbor)
                     heappush(openSet, neighborTuple)
 
-#
-# Helper functions for the search function 
-#
+    #
+    # Helper functions for the search function 
+    #
 
     def isNodeInOpenSet(self, openSet, node):
         index = 0
@@ -290,7 +288,7 @@ class Planner:
             else:
                 return False
 
-    # FIX HEURISTIC FOR TAKE AND DROP
+    # Heuristic function
     def heuristic_cost_estimate(self, node, goal):
         goalList = goal.split(",")
         command = goalList[0]
@@ -329,16 +327,6 @@ class Planner:
         currentWorld = node.world
         worldLength  = len (parentWorld)
         list = []
-        
-       # if not node.holding:
-       #    for i in range(0,worldLength):
-       #         if currentWorld[i] < parentWorld[i]:
-       #             cmdString.append("pick " + str(i))
-       #             
-       #         if currentWorld[i] > parentWorld[i]:
-       #             cmdString.append("drop " + str(i))
-       # else:
-
         
         parentWorldConcat = [value for sublist in parentWorld for value in sublist]
         currentWorldConcat = [value for sublist in currentWorld for value in sublist]
@@ -418,6 +406,9 @@ class Planner:
                 return sourceObjectLocation[0] < targetObjectLocation[0]
             elif relation == "rightof":
                 return sourceObjectLocation[0] > targetObjectLocation[0]
+
+
+                
     # Utility functions, remove these functions
     def getWorldLength(self, world):
         return len(world)
@@ -483,38 +474,3 @@ class Planner:
                 return stack
             else:
                 stack = stack+1
-
-
-if __name__ == '__main__':
-    #print reconstructPath(node9, [])
-    small = [["e"],["g","l"],[],["k","m","f"],[]]
-    medium = [["e"],["a","l"],[],[],["i","h","j"],[],[],["k","g","c","b"],[],["d","m","f"]]
-    world = [["e"],[],["k"]]
-    objects = {
-    "a": { "form":"brick",   "size":"large",  "color":"green" },
-    "b": { "form":"brick",   "size":"small",  "color":"white" },
-    "c": { "form":"plank",   "size":"large",  "color":"red"   },
-    "d": { "form":"plank",   "size":"small",  "color":"green" },
-    "e": { "form":"ball",    "size":"large",  "color":"white" },
-    "f": { "form":"ball",    "size":"small",  "color":"black" },
-    "g": { "form":"table",   "size":"large",  "color":"blue"  },
-    "h": { "form":"table",   "size":"small",  "color":"red"   },
-    "i": { "form":"pyramid", "size":"large",  "color":"yellow"},
-    "j": { "form":"pyramid", "size":"small",  "color":"red"   },
-    "k": { "form":"box",     "size":"large",  "color":"yellow"},
-    "l": { "form":"box",     "size":"large",  "color":"red"   },
-    "m": { "form":"box",     "size":"small",  "color":"blue"  }
-    }
-
-    goal = "take,m"
-    planner = Planner(medium, "m", objects)
-    
-    
-    #print planner.startPlanning(goal)
-
-    #print world[0]
-    #print planner.heuristic_cost_estimate(world, goal)
-    
-        #print planner.search(goal)
-        #goal = "above,e,j" 
-        #test = self.isGoal(medium,goal) 

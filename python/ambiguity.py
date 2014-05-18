@@ -104,7 +104,8 @@ class AmbiguityResolver:
             while neighb < len(neighbourObjects[dir]):
                 if neighbourObjects[dir].count(neighbourObjects[dir][neighb]) == 1 and not neighbourObjects[dir][neighb] == "-":
                     while True:
-                        answer = raw_input("Do you mean the "+ duplicateObject[1]+ " "+ duplicateObject[2]+ " "+ duplicateObject[0]+ " that is the closest "+
+                        answer = raw_input("Do you mean the "+ duplicateObject[1]+ " "+ duplicateObject[2]+ " "+ duplicateObject[0]+ 
+                            " that is the closest "+
                             direction[dir]+ " "+ neighbourObjects[dir][neighb][1]+ " "+ neighbourObjects[dir][neighb][2]+
                                                      " "+ neighbourObjects[dir][neighb][0]+ " ? (Y/N)").upper()
                         if answer == "Y":
@@ -124,7 +125,8 @@ class AmbiguityResolver:
 
     def getNeighbours(self, objCandidates, range):
         '''This function saves in separate lists the neighbours to the left of all object candidates, those on top,
-            to the right and under each candidate. Returns a list of 4 lists, left ontop right under, where each list position is the neighbour of a different object. 
+            to the right and under each candidate. Returns a list of 4 lists, left ontop right under, where each list 
+            position is the neighbour of a different object. 
             The goal is to be able to compare neighbours on one direction
             for all the candidates, in order to differentiate them and narrow down the list of candidate objects.
         '''
@@ -181,7 +183,8 @@ class AmbiguityResolver:
         '''
             Function that asks questions based on the attribute differences. It takes a difference, and if that difference is in "form"
             it will ask about the form of the described object, narrowing down the list by calling the function cleanCandidates and returning it.
-            If the difference is in colour or shape, the questions slightly differs, but the selection (cleanCandidates) is the same, according to the answer.
+            If the difference is in colour or shape, the questions slightly differs, but the selection (cleanCandidates) is 
+            the same, according to the answer.
         '''
         while True:
             value = objCandidates[0][objDifference]
@@ -356,7 +359,8 @@ class AmbiguityResolver:
             elif targResult == 'floor':
                 return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + targResult]
             else:
-                return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," + self.worldPopulation[targResult[0]][targResult[1]]]
+                return [command + "," + relation + "," + self.worldPopulation[sourceResult[0]][sourceResult[1]] + "," 
+                + self.worldPopulation[targResult[0]][targResult[1]]]
 
     def parse(self, inputList):
         ''' Takes a list from the interpreter and parses it to a format
