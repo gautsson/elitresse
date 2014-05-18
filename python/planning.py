@@ -54,6 +54,8 @@ class Planner:
         
         # Balls must be in boxes or on the floor, otherwise they roll away 
 
+        
+
         def ballInBox(self, object, stackObject): 
             if object["form"] == "ball":
                 if stackObject["form"] == "box":
@@ -143,13 +145,16 @@ class Planner:
                 if not self.preConstraintCheck(sourceObject, targetObject):
                     return ["The rules do not allow this command"]
 
+            goal = "move" + "," + relation + "," + self.holding + "," + targetObject
+            
             dropStack = self.objectOnTopCheck(self.startWorld, targetObject)
 
             if dropStack:
                 return ["drop " + str(dropStack)]
+            else: 
+                self.dropObject(self.holding)
+                self.holding = None
             
-            goal = "move" + "," + relation + "," + self.holding + "," + targetObject
-
         return self.search(goal)
 
     def dropObject(self, object):
