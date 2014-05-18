@@ -102,15 +102,9 @@ class Planner:
                     return False
 
 # ----------------------------------------------------------
-
-# Gets the stack of an object
-    def getObjectStack(self, object, world):
-        stack = 0
-        for item in world:
-            if object in item:
-                return stack
-            else:
-                stack = stack+1
+    def preConstraintCheck(self, sourceObject, targetObject):
+        rules = self.Rules(self.objects)
+        return rules.applyRules(sourceObject, targetObject)
 
     # Starting function
     def startPlanning(self, goal):    
@@ -126,56 +120,49 @@ class Planner:
                 if not self.preConstraintCheck(sourceObject, targetObject):
                     return ["The rules do not allow this command"]
 
-            
+            if self.holding:
+                self.dropObject(self.holding)
+                self.holding = None
 
         elif command == "take":
             object = goalList[1]
             
-            pickObjectStack = self.pickFunctionCheck(self.startWorld, object)
-            
             if self.holding:
-                if self.holding == object:
-                    return ["I am already holding the object"]
-                else:
-                    self.dropObject(object)
-
-            elif not pickObjectStack == None:
-                    return ["pick " + str(pickObjectStack)]
+                self.dropObject(self.holding)
+                self.holding = None
 
         elif command == "put":
+            relation = goalList[1]
+            sourceObject = self.holding
+            targetObject = goalList[2]
+
             if not self.holding:
                 return []
             
-            relation = goalList[1]
-            targetObject = goalList[2]
-
-            if relation == "ontop" or relation == "inside" or relation == "above":
+            if not targetObject == "floor" and (relation == "ontop" or relation == "inside" or relation == "above"):
                 if not self.preConstraintCheck(sourceObject, targetObject):
                     return ["The rules do not allow this command"]
-            
-            self.dropObject(targetObject)
 
+            dropStack = self.objectOnTopCheck(self.startWorld, targetObject)
+
+            if dropStack:
+                return ["drop " + str(dropStack)]
+            
             goal = "move" + "," + relation + "," + self.holding + "," + targetObject
 
         return self.search(goal)
 
     def dropObject(self, object):
         emptyStacks = self.getEmptyStacks(self.startWorld)
-        pickObjectStack = self.pickFunctionCheck(self.startWorld, object)
-
-        if not emptyStacks:
-            for stack in range (len(self.startWorld)):
-                if self.drop(self.startWorld, stack, self.holding):
-                    self.holding = None
-                    self.commandString.append("drop " + str(stack))            
-        else:
-            self.drop(self.startWorld, emptyStacks[0], self.holding)
-            self.holding = None
+        
+        if emptyStacks:
+            self.drop(self.startWorld, emptyStacks[0], object)
             self.commandString.append("drop " + str(emptyStacks[0]))
+        else:
+            for stack in range (len(self.startWorld)):
+                if self.drop(self.startWorld, stack, object):
+                    self.commandString.append("drop " + str(stack))            
 
-    def preConstraintCheck(self, sourceObject, targetObject):
-        rules = self.Rules(self.objects)
-        return rules.applyRules(sourceObject, targetObject)
 #
 # The search function, our pride and joy
 #
@@ -200,9 +187,9 @@ class Planner:
             currentNode = heappop(openSet)[1]
 
             if (self.isGoal(currentNode, goal)):
-                goalList = goal.split(",")
                 path = self.reconstructPath(currentNode, list())
-                pickObjectStack = self.pickFunctionCheck(currentNode.world, goalList[1])
+                
+                pickObjectStack = self.objectOnTopCheck(currentNode.world, goalList[1])
                 
                 if command == "take":
                     path.append("pick " + str(pickObjectStack))
@@ -466,11 +453,12 @@ class Planner:
                 balls.append([])
         return balls
 
-# Checks whether the target object is on top of a stack or not
-    def pickFunctionCheck(self, world, pickObject):
+    # Checks whether the target object is on top of a stack or not
+    def objectOnTopCheck(self, world, object):
         topList = self.getTopObject(world)
-        if pickObject in topList:
-            return self.getLocation(world, pickObject)[0]
+
+        if object in topList:
+            return self.getLocation(world, object)[0]
         else:
             return None
 
@@ -482,7 +470,15 @@ class Planner:
         else:
             return False
 
-    
+    # Gets the stack of an object
+    def getObjectStack(self, object, world):
+        stack = 0
+        for item in world:
+            if object in item:
+                return stack
+            else:
+                stack = stack+1
+
 
 if __name__ == '__main__':
     #print reconstructPath(node9, [])

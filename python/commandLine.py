@@ -106,17 +106,21 @@ def main():
             print "Parse error!"
             continue
         
-        goal = interpret(parseTrees, world, objects)
-        if not goal:
+        goals = interpret(parseTrees, world, objects)
+        if not goals:
             print "Interpretation error!"
             continue
+
+        goal = goals[0]
 
         worldCopy = deepcopy(world)
         plan = solve(goal, worldCopy, holding, objects)
         if not plan:
-            print "Planning error"
+            print "Planning error!"
             continue
         
+        print "Plan: " str(plan)
+
         holding = doPlan(world, holding, plan)
 
 if __name__ == '__main__':    

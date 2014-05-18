@@ -10,8 +10,6 @@ import json
 import interpreting
 import planning
 import ambiguity
-import time
-import os
 
 GRAMMAR_FILE = "shrdlite_grammar.fcfg"
 
@@ -102,74 +100,9 @@ def main(utterance, world, holding, objects, **_):
     result['output'] = "Success!"
     return result
 
-
-def isFileEmpty(fileName):
-    return os.stat(fileName)[6]==0
-
-def writeFile(fileName, newContents):
-    file = open(fileName, "a")
-    # If file is empty
-    if isFileEmpty(fileName):
-        file.write(newContents)
-    else:
-        file.write("," + newContents)
-    file.close()
-
-def readFile(fileName):
-    infile = file(fileName, 'r')
-    whole = infile.readlines()
-    infile.close()
-    return whole
-
-def resetFile(fileName):
-    file = open(fileName, "w")
-    file.write("")
-    file.close()
-
-def getPreviousAnswers():
-    a = readFile("config.cf")
-    listOfUserAnswers = []
-    if not isFileEmpty("config.cf"):
-        listOfPreviousAnswers = a[0].split(",")
-        return listOfPreviousAnswers
-        
-
-def initialize(utterance, world, holding, objects, **_):
-    whole = readFile("config.cf")
-    if not whole:
-        result = main(**input)
-        #writeFile("config.cf","")
-        return result
-
-    else:
-        #interpreter = interpreting.Interpreter()
-        #preGoal = interpreter.interpret(tree)
-        #writeFile("config.cf",preGoal)
-
-        result = {}
-        #result['utterance'] = ["Blah"]
-        #result['trees'] = ["Meh"]
-        #result['goals'] = ["Mei"]
-        result['utterance'] = utterance
-        trees = parse(utterance)
-
-        result['trees'] = trees
-        result['goals'] = goals = interpret(trees, world, holding, objects)
-        if not goals:
-            result['output'] = "Interpretation error!"
-            return result
-        if len(goals) > 1:
-            result['output'] = "Ambiguity error!"
-            return result
-        goal = goals[0]
-        result['plan'] = goal
-        result['output'] = "You need to be more specific"
-        #result['plan'] = ["Do you mean the ball to the right?"]
-        return result
-
 if __name__ == '__main__':
     input = json.load(sys.stdin)
-    output = initialize(**input)
+    output = main(**input)
 
     # json.dump(output, sys.stdout)
     # json.dump(output, sys.stdout, sort_keys=True, indent=4)
